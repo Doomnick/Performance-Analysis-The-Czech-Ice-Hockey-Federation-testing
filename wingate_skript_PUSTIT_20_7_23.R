@@ -1,7 +1,7 @@
 # Wingate test script
 
 # cesta k vychozi slozce, ktera obsahuje podslozky - wingate(.txt exporty z wattbike); antropometrie(.xls nebo .xlsx soubor s antropometrii obsahujici list "Data_Sheet") - vsechny nazvy jsou senzitivni na velikost pismen
-wd <- "C:/Users/Uzivatel/Documents/R/Wingate"
+wd <- "C:/Users/Dominik Kolinger/Documents/R/Wingate"
 
 
 ########## PRED SPUSTENIM CTI SOUBOR READ_ME! #################################################
@@ -113,9 +113,8 @@ if ("TRUE" %in% duplikaty) {
 } 
 
 
-
 if (srovnani != "A") {
-if ("FALSE" %in% kontrola) {
+if ("FALSE" %in% kontrola & !pracma::isempty(setdiff(file.list.bez, file.list.an.bez))) {
   cat('\n\n')
   print("Nazvy Wingate jsou rozdilne oproti Antropometrii - ZKONTROLUJ:")
   cat('\n')
@@ -130,7 +129,7 @@ if ("FALSE" %in% kontrola) {
     }
 }
 } else if (srovnani == "A") {
-  if ("FALSE" %in% kontrola || "FALSE" %in% kontrola.s) {
+  if ("FALSE" %in% kontrola || "FALSE" %in% kontrola.s & !pracma::isempty(setdiff(file.list.bez, file.list.an.bez))) {
     if ("FALSE" %in% kontrola) {
     cat('\n\n')
     print("Nazvy Wingate jsou rozdilne oproti Antropometrii - ZKONTROLUJ:")
