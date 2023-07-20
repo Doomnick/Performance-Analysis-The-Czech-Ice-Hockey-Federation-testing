@@ -1,7 +1,7 @@
 # Wingate test script
 
 # cesta k vychozi slozce, ktera obsahuje podslozky - wingate(.txt exporty z wattbike); antropometrie(.xls nebo .xlsx soubor s antropometrii obsahujici list "Data_Sheet") - vsechny nazvy jsou senzitivni na velikost pismen
-wd <- "C:/Users/Dominik Kolinger/Documents/R/Wingate"
+wd <- "C:/Users/Uzivatel/Documents/R/Wingate"
 
 
 ########## PRED SPUSTENIM CTI SOUBOR READ_ME! #################################################
