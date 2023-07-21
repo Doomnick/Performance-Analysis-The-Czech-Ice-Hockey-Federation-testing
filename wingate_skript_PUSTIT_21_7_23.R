@@ -129,8 +129,8 @@ if ("FALSE" %in% kontrola & !pracma::isempty(setdiff(file.list.bez, file.list.an
     }
 }
 } else if (srovnani == "A") {
-  if ("FALSE" %in% kontrola || "FALSE" %in% kontrola.s & !pracma::isempty(setdiff(file.list.bez, file.list.an.bez))) {
-    if ("FALSE" %in% kontrola) {
+  if ("FALSE" %in% kontrola || "FALSE" %in% kontrola.s) {
+    if ("FALSE" %in% kontrola & !pracma::isempty(setdiff(file.list.bez, file.list.an.bez))) {
     cat('\n\n')
     print("Nazvy Wingate jsou rozdilne oproti Antropometrii - ZKONTROLUJ:")
     cat('\n')
