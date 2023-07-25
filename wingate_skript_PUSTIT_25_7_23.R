@@ -235,6 +235,10 @@ s30 <- length(df$Elapsed.time.total..h.mm.ss.hh.)
 radky5s <- round(mean(s5, (s10-s5), (s15-s10), (s20-s15), (s25-s20), (s30-s25)),0)
 df$RM5_Power <- zoo::rollmean(df$Power..W., k=radky5s, fill = NA, align = "right")
 
+for (i in 1:length(df$Power..W.)) {
+  df$AvP_dopocet[i] <- mean(df$Power..W.[1:i] )
+}
+
 #vypocty hodnot
 
 if (an.input == "batch") {
@@ -273,7 +277,7 @@ minp5s <- round(min(df$RM5_Power, na.rm = T),1)
 drop <- pp - minp
 iu <- round(((pp5s-minp5s)/pp5s)*100,1)
 avrp <- round(mean(df$Power..W.),1)
-totalw <- round(mean(df$Work..J.*30),0)
+totalw <- round(mean(df$AvP_dopocet*30),0)
 pp5sradek <- which(df$RM5_Power == pp5s)
 an.cap <- round(totalw/vaha,2)
 
