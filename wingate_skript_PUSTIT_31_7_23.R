@@ -167,7 +167,7 @@ library(cowplot)
 library(tidyverse)
 library(tinytex)
 
-
+i<-1
 #smycka pro export
 for(i in 1:length(file.list)) {
 # data Wingate
@@ -291,7 +291,7 @@ vyhlazeno <- smooth.spline(df$Elapsed.time.total..h.mm.ss.hh., df$Power..W., spa
 y <- predict(vyhlazeno, newdata = df)
 y <- y$y
 
-if(srovnani == "A") {
+if(srovnani == "A" & id %in% file.list.compar.bez) {
   vyhlazeno.compare <- smooth.spline(compare.wingate$Elapsed.time.total..h.mm.ss.hh., compare.wingate$Power..W., spar = 0.4)
   y2 <- predict(vyhlazeno.compare, newdata = compare.wingate)
   y2 <- y2$y
@@ -566,7 +566,7 @@ df2 <- df2 %>% relocate(Name, .before = Date_meas.)
 df2$Age <- age
 df2 <- df2 %>% relocate(Age, .after = Date_meas.)
 df2$Turns <- round(tail(df$Turns.number..Nr.,1),0)
-if (srovnani == "A") {
+if (srovnani == "A" & id %in% file.list.compar.bez) {
   df2$Turns[length(df2$Turns)-1] <- round(tail(compare.wingate$Turns.number..Nr.,1),0) 
 }
 
