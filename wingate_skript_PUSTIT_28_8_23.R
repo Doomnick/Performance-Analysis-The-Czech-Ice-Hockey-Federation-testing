@@ -179,7 +179,6 @@ library(cowplot)
 library(tidyverse)
 library(tinytex)
 
-
 #smycka pro export
 for(i in 1:length(file.list)) {
 # data Wingate
@@ -250,7 +249,7 @@ df$Elapsed.time.total..h.mm.ss.hh. <- df$Elapsed.time.total..h.mm.ss.hh.- df$Ela
   cas.zacatku <- tail(df$Elapsed.time.total..h.mm.ss.hh.,1) - 30
   radek.zacatku <- which.min(abs(df$Elapsed.time.total..h.mm.ss.hh. - cas.zacatku)) - 1
   df <- df[-(1:radek.zacatku),]
-  if (df$Elapsed.time.total..h.mm.ss.hh.[1] > 5) {
+  if (df$Elapsed.time.total..h.mm.ss.hh.[1] > 4) {
     df$Elapsed.time.total..h.mm.ss.hh. <- df$Elapsed.time.total..h.mm.ss.hh.- df$Elapsed.time.total..h.mm.ss.hh.[1]
   }
   }
