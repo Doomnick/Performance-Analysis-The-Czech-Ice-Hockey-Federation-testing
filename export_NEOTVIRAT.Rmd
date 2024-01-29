@@ -30,7 +30,7 @@ plot_grid(img1, NULL, img2, img3, rel_widths = c(3,0.05,2,1), rel_heights = c(2,
 
 ```
 
-![](logo.png){height='50'} Biomedicínská laboratoř UK FTVS, 2023
+![](logo.png){height='50'} Biomedicínská laboratoř UK FTVS, 2024
 
 
 
