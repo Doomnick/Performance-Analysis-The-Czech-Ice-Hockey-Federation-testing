@@ -1,0 +1,44 @@
+---
+title: ""
+output: 
+  pdf_document:
+      latex_engine: xelatex
+      keep_tex: true
+geometry: margin=0.5cm
+classoption: landscape
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r,echo=FALSE, message=FALSE, warning=FALSE,fig.align = "center", out.width="100%", fig.width=15, fig.height=10}
+library(webshot)
+library(cowplot)
+library(magick)
+
+t3 <- image_read("t3.png")
+p2 <- image_read("p2.png")
+t4 <- image_read("t4.png")
+img4 <- ggdraw() + draw_image(t3, scale = 1)
+img5 <- ggdraw() + draw_image(p2, scale = 1)
+img6 <- ggdraw() + draw_image(t4, scale = 1)
+```
+
+
+```{r, echo=FALSE, message=FALSE, fig.align='center', out.width='100%', fig.width=15, fig.height=10}
+knitr::opts_chunk$set(fig.align='center')
+
+# Create the first grid
+grid1 <- img4
+
+grid2_padded <- plot_grid(img6,NULL, ncol = 1, nrow = 2, rel_heights = c(1, 0.2), align = "v")
+# Create the second grid
+grid2 <- plot_grid(img5, grid2_padded, ncol = 2, rel_widths = c(4, 1), rel_heights = c(2,1), align = 'h', axis = "t", greedy = TRUE)
+
+
+
+# Combine grid1 and the padded grid2
+plot_grid(grid1, grid2, ncol = 1, rel_heights = c(1.3, 1),rel_widths = c(1, 1), align = "hv", axis = "tblr", greedy = FALSE)
+
+```
+![](logo.png){height='50'} Biomedicínská laboratoř UK FTVS, 2024

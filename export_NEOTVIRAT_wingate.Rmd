@@ -1,0 +1,50 @@
+---
+title: ""
+output: 
+  pdf_document:
+      latex_engine: xelatex
+      keep_tex: true
+geometry: margin=0.5cm
+classoption: landscape
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+render_cond <- dotaz_spiro == "YES"
+```
+
+```{r,echo=FALSE, message=FALSE, warning=FALSE,fig.align = "center", out.width="100%", fig.width=15, fig.height=10}
+library(webshot)
+library(cowplot)
+library(magick)
+t1 <- image_read("t1.png")
+t2 <- image_read("t2.png")
+p1 <- image_read("p1.png")
+
+img1 <- ggdraw() + draw_image(t1, scale = 1)
+img2 <- ggdraw() + draw_image(p1, scale = 1)
+img3 <- ggdraw() + draw_image(t2, scale = 1)
+
+plot_grid(img1, NULL, img2, img3, rel_widths = c(3,0.05,2,1), rel_heights = c(2,0.05,2,1), nrow = 4, greedy = F, axis = "b")
+
+```
+
+
+![](logo.png){height='50'} Biomedicínská laboratoř UK FTVS, 2024
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
