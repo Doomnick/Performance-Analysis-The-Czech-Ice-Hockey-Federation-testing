@@ -1,42 +1,39 @@
-Slozka se skripty (Wingate_Spiro_radarchart.r a export.rmd) musi obsahovat nasledujici podslozky (nazvy bez diakritiky, tak jak jsou psany):
+Folder with Scripts (Wingate_Spiro_radarchart.r and export.rmd) must contain the following subfolders (names without diacritics, as written):
 
-antropometrie - obsahuje .xls soubory s antropometrii (jeden hromadný nebo pro každého probanda zvlášť), v pripade vyhodnoceni skoku soubor obsahuje sloupec "SJ" s ciselnymi hodnotami
+antropometrie - contains .xls files with anthropometric data (either one bulk file or separate files for each subject). In case of jump evaluations, the file includes a column "SJ" with numeric values.
 
-databaze - vysledna excel databaze se vsemi predchozimi merenimi
+databaze - the resulting Excel database with all previous measurements.
 
-reporty - vysledne pdf reporty po spusteni skriptu
+reporty - final PDF reports generated after running the script.
 
-vymazat - docasna data, ktera je treba vymazat po dokonceni skriptu
+vymazat - temporary data that should be deleted after the script finishes.
 
-vysledky - obsahuje excel export ze soucasneho mereni
+vysledky - contains Excel export from the current measurement.
 
-wingate - .txt exporty z Wattbike (aktuální měření), složky pro porovnání můžou být umístěny kdekoliv (skript spustí dotaz na cestu k souboru)
+wingate - .txt exports from Wattbike (current measurements). Comparison folders can be located anywhere (the script will prompt for the file path).
 
-spiro - .xlsx exporty ze spiroergometrie
+spiro - .xlsx exports from spirometry.
 
+Folders REPORTY and VYMAZAT should be empty before running the script.
 
-SLOZKY REPORTY, VYMAZAT by mely byt pred spustenim skriptu prazdne. 
+Folders ANTROPOMETRIE, WINGATE, and possibly SPIRO must contain files with matching names (IDs). The ID must also match in the Excel file laktat.xls; otherwise, files will not pair, and the script will display a warning (see step 8 below).
 
-Slozky ANTROPOMETRIE a WINGATE a pripadne SPIRO musi obsahovat soubory se shodnymi nazvy (id), stejne tak id musi odpovidat v excelu laktat.xls, jinak se soubory nesparuji
-a skript zobrazi upozorneni (viz krok 8 nize).
+Procedure:
 
-Postup:
-1) rozkliknout soubor Wingate_Spiro_radarchart
-2) na 3. radku skriptu zkontrolovat cestu ke slozce se skriptem ve spravnem formatu (např. "C:/Users/<Uzivatel>/Documents/Wingate+Spiro")
-3) spustit pomoci tlacitka <source> vpravo nahore podokna s kodem skriptu
-4) objevi se dotaz na spiro report, pokud date ANO, soubory ze slozky spiro budou zahrnuty do reportu
-5) dalsi dotaz je pro srovnavaci wingate soubory, lze pridat dve srovnani
-6) nasledujici dotaz je pro pridani nejstarsiho srovnani do grafu, pokud date NE, ve vyslednem grafu nebude zahrnuta krivka nejstarsiho srovnani
-7) nasledne skript kontroluje kompatibilitu vsech souboru (pojmenovani a pocet), v pripade chyby je zobrazena chybova hlaska a popis v konzoli 
-8) pokud u chybove hlasky zvolite pokracovat v exportu, chybna data nebudou vyhodnocena, pripadne budou vyhodnocena castecne
-9) pokud zvolite ne, skript se zastavi, opravte soubory a zacnete znovu stisknutim tlačítka <source>
-7) pokud jsou id a pocty v poradku, skript pokracuje v generování reportu
-10) skript generuje reporty do slozky <reporty>
-11) skript zobrazi dotaz k ulozeni souboru do databaze, napiste do konzole A nebo N a potvrdte enter
-12) pokud A - databaze nahraje posledni ulozeny databazovy soubor a prida k nemu soucasne mereni, nasledne vyexportuje novy soubor. 
-13) vymazte vse ve slozce vymazat
-
-do.kolinger@gmai*.com
+Open the file Wingate_Spiro_radarchart.
+On the 3rd line of the script, check the path to the folder with the script in the correct format (e.g., "C:/Users//Documents/Wingate+Spiro").
+Run the script using the button on the top right of the code window.
+A prompt for the spirometry report will appear. If you select YES, files from the spiro folder will be included in the report.
+The next prompt is for comparison Wingate files; you can add two comparisons.
+The following prompt is for adding the oldest comparison to the graph. If you select NO, the graph will not include the curve of the oldest comparison.
+The script will then check the compatibility of all files (naming and count). If there is an error, an error message and description will be displayed in the console.
+If you choose to continue with the export despite the error, incorrect data will not be evaluated, or may be partially evaluated. If you choose NO, the script will stop. Correct the files and start again by pressing the button.
+If IDs and counts are correct, the script will proceed with generating the report.
+The script generates reports into the folder.
+The script will prompt to save the file to the database. Type A or N in the console and press Enter.
+If A - the database will upload the last saved database file and add the current measurement to it, then export a new file.
+Delete everything in the vymazat folder.
+do.kolinger@gmai****.com
 
 
 
