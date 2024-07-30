@@ -1,10 +1,17 @@
 Slozka se skripty (Wingate_Spiro_radarchart.r a export.rmd) musi obsahovat nasledujici podslozky (nazvy bez diakritiky, tak jak jsou psany):
+
 antropometrie - obsahuje .xls soubory s antropometrii (jeden hromadný nebo pro každého probanda zvlášť), v pripade vyhodnoceni skoku soubor obsahuje sloupec "SJ" s ciselnymi hodnotami
+
 databaze - vysledna excel databaze se vsemi predchozimi merenimi
+
 reporty - vysledne pdf reporty po spusteni skriptu
+
 vymazat - docasna data, ktera je treba vymazat po dokonceni skriptu
+
 vysledky - obsahuje excel export ze soucasneho mereni
+
 wingate - .txt exporty z Wattbike (aktuální měření), složky pro porovnání můžou být umístěny kdekoliv (skript spustí dotaz na cestu k souboru)
+
 spiro - .xlsx exporty ze spiroergometrie
 
 
