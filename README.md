@@ -1,5 +1,5 @@
 This script in R language processes data from the Monark Wingate device, MetaLyzer 3B R3 spiroergometry device, and anthropometric measurements. It summarizes the results, compares them with previous measurements and reference values, generates plots for each measurement, and creates a final radar chart depicting the athlete's performance profile. The script then exports a PDF file for each athlete trough R Markdown plugin and produces an XLSX file with the results for the entire tested group. It was developed to streamline and clarify the results of mass testing for youth and adults within the Czech Ice Hockey Federation.
----------------------------------------------------------------
+
 Wingate_Spiro_radarchart.r is the main script. If you only want to generate results from spiroergometry, use Spiroergometry_reports.r instead.
 
 Folder with Scripts (Wingate_Spiro_radarchart.r and export.rmd) must contain the following subfolders (names without diacritics, as written):
