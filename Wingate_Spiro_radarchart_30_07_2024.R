@@ -25,12 +25,12 @@ sports_data <- data.frame(
 instalace <- function() {
   files <- list.files(pattern='[.](R|rmd)$', all.files=T, recursive=T, full.names = T, ignore.case=T) # find all source code files in (sub)folders
   code=unlist(sapply(files, scan, what = 'character', quiet = TRUE))   # read in source code
-
+  
   code <- code[grepl('^library', code, ignore.case=T)]   # retain only source code starting with library
   code <- gsub('^library[(]', '', code)
   code <- gsub('[)]', '', code)
   code <- gsub('^library$', '', code)
-   
+  
   uniq_packages <- unique(code)   # retain unique packages
   uniq_packages <- uniq_packages[!uniq_packages == '']   # kick out "empty" package names
   uniq_packages <- uniq_packages[order(uniq_packages)]   # order alphabetically
@@ -46,7 +46,7 @@ instalace <- function() {
   if (length(to_be_installed)==length(uniq_packages)) cat('Vsechny balicky musi byt nainstalovany - instaluji.\n')
   if (length(to_be_installed)>0) cat('Instaluji chybejici balicky.\n')
   if (length(to_be_installed)==0) cat('Vsechny balicky jsou jiz nainstalovany!\n')
-   
+  
   if (length(to_be_installed)>0) install.packages(to_be_installed, repos = 'https://cloud.r-project.org')   # install missing packages
 }
 
@@ -120,6 +120,7 @@ kontrola <- sapply(list(unique(sort(file.list.an.bez))), FUN = identical, file.l
 kontrola.spiro <- ifelse(dotaz_spiro == "YES", sapply(list(file.list.spiro.bez), FUN = identical, file.list.bez), NA)
 kontrola.s2 <- NA
 
+
 if (srovnani == "YES") {
   if (exists("file.list.compar_2")) {
     file.list.compar_2.bez <- sort(tools::file_path_sans_ext(file.list.compar_2))
@@ -128,80 +129,80 @@ if (srovnani == "YES") {
   file.list.compar.bez <- c()
   file.list.compar.bez <- sort(tools::file_path_sans_ext(file.list.compar))  
   kontrola.s <- sapply(list(file.list.compar.bez), FUN = identical, file.list.bez)
-
+  
   
 }
 
 duplikaty <- duplicated(file.list.an.bez)
 
 # Raw data Error reporting
-  if ("TRUE" %in% duplikaty) {
-    print("Duplikaty v souboru s antropometrii:")
-    print(file.list.an.bez[which(duplikaty=="TRUE")])
-    if (srovnani != "YES") {
-      stop(winDialog("ok", paste("Export přerušen: Nalezeno", length(duplikaty), "duplikátů v souboru s Antropometrií", sep = " ")))
-    }
-    else if (srovnani == "YES") {
-      print(paste("Nalezeno celkem", length(which(duplikaty=="TRUE")), "duplikátù", sep = " "))
-      duplikaty_check <- winDialog("yesno", paste("Nalezeno celkem", length(which(duplikaty=="TRUE")), "duplikátů v antropometrii, pokračovat v exportu?", sep = " "))
-      pocty.duplikatu.an <- as_tibble(table(file.list.an.bez))
-      pocty.duplikatu.an <- pocty.duplikatu.an[pocty.duplikatu.an$n != 1, ]
-      names(pocty.duplikatu.an )[1] <- "ID"
-      names(pocty.duplikatu.an )[2] <- "antropa"
-      merged.file.list <- c(file.list.bez, file.list.compar.bez, file.list.compar_2.bez)
-      pocty.file.list <- as_tibble(table(merged.file.list))
-      pocty.file.list <- pocty.file.list[pocty.file.list$n != 1, ]
-      names(pocty.file.list)[1] <- "ID"
-      names(pocty.file.list)[2]<- "wingate"
-      pocty.file.list <- left_join(pocty.file.list, pocty.duplikatu.an, by = "ID")
-      pocty.file.list$diff <- pocty.file.list$wingate - pocty.file.list$antropa
-      chybne.pocty <- as.vector(pocty.file.list$ID[pocty.file.list$diff > 0])
-      if (duplikaty_check == "NO") {
+if ("TRUE" %in% duplikaty) {
+  print("Duplikaty v souboru s antropometrii:")
+  print(file.list.an.bez[which(duplikaty=="TRUE")])
+  if (srovnani != "YES") {
+    stop(winDialog("ok", paste("Export přerušen: Nalezeno", length(duplikaty), "duplikátů v souboru s Antropometrií", sep = " ")))
+  }
+  else if (srovnani == "YES") {
+    print(paste("Nalezeno celkem", length(which(duplikaty=="TRUE")), "duplikátù", sep = " "))
+    duplikaty_check <- winDialog("yesno", paste("Nalezeno celkem", length(which(duplikaty=="TRUE")), "duplikátů v antropometrii, pokračovat v exportu?", sep = " "))
+    pocty.duplikatu.an <- dplyr::as_tibble(table(file.list.an.bez))
+    pocty.duplikatu.an <- pocty.duplikatu.an[pocty.duplikatu.an$n != 1, ]
+    names(pocty.duplikatu.an )[1] <- "ID"
+    names(pocty.duplikatu.an )[2] <- "antropa"
+    merged.file.list <- c(file.list.bez, file.list.compar.bez, file.list.compar_2.bez)
+    pocty.file.list <- dplyr::as_tibble(table(merged.file.list))
+    pocty.file.list <- pocty.file.list[pocty.file.list$n != 1, ]
+    names(pocty.file.list)[1] <- "ID"
+    names(pocty.file.list)[2]<- "wingate"
+    pocty.file.list <- dplyr::left_join(pocty.file.list, pocty.duplikatu.an, by = "ID")
+    pocty.file.list$diff <- pocty.file.list$wingate - pocty.file.list$antropa
+    chybne.pocty <- as.vector(pocty.file.list$ID[pocty.file.list$diff > 0])
+    if (duplikaty_check == "NO") {
+      stop("OPERACE PRERUSENA UZIVATELEM", call. = F)
+    } else if (duplikaty_check == "YES" & length(chybne.pocty) > 0) {
+      pocty_check <- winDialog("yesno", paste("Nalezeno celkem", length(chybne.pocty), "chybějících záznamů pro srovnání v antropě, pokračovat?", sep = " "))
+      print("Chybí antropa u srovnávacího wingate pro:")
+      cat('\n')
+      print(chybne.pocty)
+      if (pocty_check == "YES") {
+        spatne.compar <- chybne.pocty
+        spatne.compar_2 <- chybne.pocty
+      } else if (pocty_check == "NO") {
+        view(pocty.file.list)
         stop("OPERACE PRERUSENA UZIVATELEM", call. = F)
-      } else if (duplikaty_check == "YES" & length(chybne.pocty) > 0) {
-        pocty_check <- winDialog("yesno", paste("Nalezeno celkem", length(chybne.pocty), "chybějících záznamů pro srovnání v antropě, pokračovat?", sep = " "))
-        print("Chybí antropa u srovnávacího wingate pro:")
-        cat('\n')
-        print(chybne.pocty)
-        if (pocty_check == "YES") {
-          spatne.compar <- chybne.pocty
-          spatne.compar_2 <- chybne.pocty
-        } else if (pocty_check == "NO") {
-          view(pocty.file.list)
-          stop("OPERACE PRERUSENA UZIVATELEM", call. = F)
-        }
       }
     }
-    
   }
-  if ("FALSE" %in% kontrola & !pracma::isempty(setdiff(file.list.bez, file.list.an.bez))) {
-    cat('\n\n')
-    print("Nazvy Wingate jsou rozdilne oproti Antropometrii - ZKONTROLUJ:")
-    cat('\n')
-    if (!pracma::isempty(setdiff(file.list.bez, file.list.an.bez))) {print(setdiff(file.list.bez, file.list.an.bez))}
-    input_x <- winDialog("yesno", paste("Nalezeno celkem", length(setdiff(file.list.bez, file.list.an.bez)), "neshod ve Wingate:Antropometrii, pokračovat v exportu?", sep = " "))
-    if (input_x == "NO") {
-      stop("OPERACE PRERUSENA UZIVATELEM", call. = F)}
-    else if (input_x == "YES") {
-      spatne.wingate <- setdiff(file.list.bez, file.list.an.bez)
-      spatne.wingate <- paste(spatne.wingate, ".txt", sep = "")
-      file.list <-  file.list[! file.list %in% spatne.wingate] 
-    }
+  
+}
+if ("FALSE" %in% kontrola & !pracma::isempty(setdiff(file.list.bez, file.list.an.bez))) {
+  cat('\n\n')
+  print("Nazvy Wingate jsou rozdilne oproti Antropometrii - ZKONTROLUJ:")
+  cat('\n')
+  if (!pracma::isempty(setdiff(file.list.bez, file.list.an.bez))) {print(setdiff(file.list.bez, file.list.an.bez))}
+  input_x <- winDialog("yesno", paste("Nalezeno celkem", length(setdiff(file.list.bez, file.list.an.bez)), "neshod ve Wingate:Antropometrii, pokračovat v exportu?", sep = " "))
+  if (input_x == "NO") {
+    stop("OPERACE PRERUSENA UZIVATELEM", call. = F)}
+  else if (input_x == "YES") {
+    spatne.wingate <- setdiff(file.list.bez, file.list.an.bez)
+    spatne.wingate <- paste(spatne.wingate, ".txt", sep = "")
+    file.list <-  file.list[! file.list %in% spatne.wingate] 
   }
-  if  ("FALSE" %in% kontrola.spiro & !pracma::isempty(setdiff(file.list.spiro.bez, file.list.an.bez))) {
-    cat('\n\n')
-    print("Nazvy Antropa jsou rozdilne oproti Spiro - ZKONTROLUJ:")
-    cat('\n')
-    diff_str <- paste(setdiff(file.list.spiro.bez, file.list.an.bez), collapse = ", ")
-    print(diff_str)
-    if (!pracma::isempty(setdiff(file.list.spiro.bez, file.list.an.bez))) {pokracovat <- winDialog("yesno", paste("Rozdíly v názvech Spiro/Antropo:", diff_str, "POKRAČOVAT?", sep= " "))}
-    if (pokracovat == "NO") {
-      stop("EXPORT PRERUSEN", call. = F)
-    } else if (pokracovat == "YES") {
-      spatne.spiro <- setdiff(file.list.spiro.bez, file.list.an.bez)
-      spatne.spiro <- paste(spatne.spiro, ".xlsx", sep = "")
-      file.list.spiro <-  file.list.spiro[!file.list.spiro %in% spatne.spiro] 
-    }
+}
+if  ("FALSE" %in% kontrola.spiro & !pracma::isempty(setdiff(file.list.spiro.bez, file.list.an.bez))) {
+  cat('\n\n')
+  print("Nazvy Antropa jsou rozdilne oproti Spiro - ZKONTROLUJ:")
+  cat('\n')
+  diff_str <- paste(setdiff(file.list.spiro.bez, file.list.an.bez), collapse = ", ")
+  print(diff_str)
+  if (!pracma::isempty(setdiff(file.list.spiro.bez, file.list.an.bez))) {pokracovat <- winDialog("yesno", paste("Rozdíly v názvech Spiro/Antropo:", diff_str, "POKRAČOVAT?", sep= " "))}
+  if (pokracovat == "NO") {
+    stop("EXPORT PRERUSEN", call. = F)
+  } else if (pokracovat == "YES") {
+    spatne.spiro <- setdiff(file.list.spiro.bez, file.list.an.bez)
+    spatne.spiro <- paste(spatne.spiro, ".xlsx", sep = "")
+    file.list.spiro <-  file.list.spiro[!file.list.spiro %in% spatne.spiro] 
+  }
   
 } else if (srovnani == "YES") {
   if ("FALSE" %in% kontrola || "FALSE" %in% kontrola.s) {
@@ -218,7 +219,7 @@ duplikaty <- duplicated(file.list.an.bez)
       if (!pracma::isempty(setdiff(file.list.bez, file.list.spiro.bez))) {
         print(setdiff(file.list.bez, file.list.spiro.bez))
         spatne.spiro <- setdiff(file.list.bez, file.list.spiro.bez)
-        }
+      }
     }
     if ("FALSE" %in% kontrola.s) {
       cat('\n\n')
@@ -227,44 +228,49 @@ duplikaty <- duplicated(file.list.an.bez)
       if (!pracma::isempty(setdiff(file.list.bez, file.list.compar.bez))) {
         print(setdiff(file.list.bez, file.list.compar.bez))
         input_y <- winDialog("yesno", paste("Srovnání 1 chybí pro", length(setdiff(file.list.bez, file.list.compar.bez)),"Wingate, pokračovat bez srovnání?", sep = " "))
-        }  }
-      if ("FALSE" %in% kontrola.s2) {
-        cat('\n\n')
-        print("Nazvy Wingate jsou rozdilne (chybi) oproti Srovnani 2 - ZKONTROLUJ:")
-        cat('\n')
-        if (!pracma::isempty(setdiff(file.list.bez, file.list.compar_2.bez))) {print(setdiff(file.list.bez, file.list.compar_2.bez))}
-        input_2 <- winDialog("yesno", paste("Srovnání 2 chybí pro", length(setdiff(file.list.bez, file.list.compar_2.bez)),"Wingate, pokračovat bez srovnání?", sep = " "))
-      }
-    if (exists("input_y")) {
-    if (input_y == "NO") {
-      stop("OPERACE PRERUSENA UZIVATELEM", call. = F)
-    } else if (input_y == "YES") {
-      if ("FALSE" %in% kontrola) {
-        spatne.wingate <- setdiff(file.list.bez, file.list.an.bez)
-        spatne.wingate <- paste(spatne.wingate, ".txt", sep = "")
-        file.list <-  file.list[! file.list %in% spatne.wingate]
-      } else if ("FALSE" %in% kontrola.s) {
-        spatne.compar <- c(spatne.compar, setdiff(file.list.bez, file.list.compar.bez))
-        spatne.compar <- unique(spatne.compar)
-        
-      }
+      }  }
+    if ("FALSE" %in% kontrola.s2) {
+      cat('\n\n')
+      print("Nazvy Wingate jsou rozdilne (chybi) oproti Srovnani 2 - ZKONTROLUJ:")
+      cat('\n')
+      if (!pracma::isempty(setdiff(file.list.bez, file.list.compar_2.bez))) {print(setdiff(file.list.bez, file.list.compar_2.bez))}
+      input_2 <- winDialog("yesno", paste("Srovnání 2 chybí pro", length(setdiff(file.list.bez, file.list.compar_2.bez)),"Wingate, pokračovat bez srovnání?", sep = " "))
     }
+    if (exists("input_y")) {
+      if (input_y == "NO") {
+        stop("OPERACE PRERUSENA UZIVATELEM", call. = F)
+      } else if (input_y == "YES") {
+        if ("FALSE" %in% kontrola) {
+          spatne.wingate <- setdiff(file.list.bez, file.list.an.bez)
+          spatne.wingate <- paste(spatne.wingate, ".txt", sep = "")
+          file.list <-  file.list[! file.list %in% spatne.wingate]
+        } else if ("FALSE" %in% kontrola.s) {
+          spatne.compar <- c(spatne.compar, setdiff(file.list.bez, file.list.compar.bez))
+          spatne.compar <- unique(spatne.compar)
+          
+        }
+      }
     }
     if(exists("input_2")) {
-    if (input_2 == "NO") {
-      stop("OPERACE PRERUSENA UZIVATELEM", call. = F) 
-    } else if (input_2 == "YES") {
-      if ("FALSE" %in% kontrola.s2) {
-        spatne.compar_2 <- c(spatne.compar_2, setdiff(file.list.bez, file.list.compar_2.bez))
-        spatne.compar_2 <- unique(spatne.compar_2)
-       
+      if (input_2 == "NO") {
+        stop("OPERACE PRERUSENA UZIVATELEM", call. = F) 
+      } else if (input_2 == "YES") {
+        if ("FALSE" %in% kontrola.s2) {
+          spatne.compar_2 <- c(spatne.compar_2, setdiff(file.list.bez, file.list.compar_2.bez))
+          spatne.compar_2 <- unique(spatne.compar_2)
+          
+        }
       }
     }
-  }
     
   }
-  file.list.compar_2.bez <- file.list.compar_2.bez[!file.list.compar_2.bez %in% spatne.compar_2]
-  file.list.compar.bez <- file.list.compar.bez[!file.list.compar.bez %in% spatne.compar] 
+  if (exists("spatne.compar_2")) {
+    file.list.compar_2.bez <- file.list.compar_2.bez[!file.list.compar_2.bez %in% spatne.compar_2]
+  }
+  if (exists("spatne.compar")) {
+    file.list.compar.bez <- file.list.compar.bez[!file.list.compar.bez %in% spatne.compar]   
+  }
+  
 }
 
 
@@ -292,11 +298,11 @@ createTeamNameWindow <- function() {
   win <- tktoplevel()
   tkwm.title(win, "Výběr teamu")
   
-
+  
   label <- tklabel(win, text = "Napište jméno týmu:")   # Create a label
   tkpack(label, side = "top", padx = 10, pady = 10)
   
-
+  
   textEntry <- tkentry(win, width = 50)   # Create a text entry widget             
   tkpack(textEntry, side = "top", padx = 20, pady = 20)
   
@@ -350,7 +356,7 @@ library(scales)
 library(webshot)
 library(patchwork)
 
-
+i <- 1
 #### MAIN FOR LOOP ####
 for(i in 1:length(file.list)) {
   # data Wingate
@@ -373,8 +379,8 @@ for(i in 1:length(file.list)) {
   if (an.input == "batch") {
     antropo <- readxl::read_excel(paste(file.path.an, "/", file.list.an[1], sep=""), sheet = "Data_Sheet")   
   }
-
-
+  
+  
   # 3rd comparison (oldest)
   if(exists("file.list.compar_2.bez")) {
     if (srovnani == "YES" & id %in% file.list.compar_2.bez) {
@@ -388,7 +394,7 @@ for(i in 1:length(file.list)) {
       } else if (tail(compare.wingate_2$Elapsed.time.total..h.mm.ss.hh.,1) > 31) {
         cas.zacatku <- tail(compare.wingate_2$Elapsed.time.total..h.mm.ss.hh.,1) - 30
         radek.zacatku <- which.min(abs(compare.wingate_2$Elapsed.time.total..h.mm.ss.hh. - cas.zacatku)) - 1
-        compare.wingate <- compare.wingate_2[-(1:radek.zacatku),]
+        compare.wingate_2 <- compare.wingate_2[-(1:radek.zacatku),]
       }
       if (compare.wingate_2$Elapsed.time.total..h.mm.ss.hh.[1] > 3) {
         compare.wingate_2$Elapsed.time.total..h.mm.ss.hh. <- compare.wingate_2$Elapsed.time.total..h.mm.ss.hh.- compare.wingate_2$Elapsed.time.total..h.mm.ss.hh.[1] 
@@ -615,224 +621,224 @@ for(i in 1:length(file.list)) {
   
   df1[1,7] <- paste(pp5s, "W", sep = " ")
   df1[2,7] <- paste(minp5s, "W", sep = " ")
- 
+  
   
   dotaz_spiro_original <- dotaz_spiro
   
   if (exists("spatne.spiro")) {
-  if (id %in% spatne.spiro) {
-  dotaz_spiro <- "NO"  
-  }
+    if (id %in% spatne.spiro) {
+      dotaz_spiro <- "NO"  
+    }
   }
   
   
   k <- which(file.list.spiro.bez==id)
   
-#### Spiroergomatery values  ####
+  #### Spiroergomatery values  ####
   if (dotaz_spiro == "YES") {
-  if (length(file.list.spiro) != 0) {
-    spiro <- readxl::read_excel(paste(spiro.path, "/", file.list.spiro[k], sep=""))
-    spiro <- spiro[rowSums(!is.na(spiro)) > 0,]
-    rows_with_bf <- which(spiro[[1]] == "BF")
-    spiro_info <- spiro[1:rows_with_bf, ]
+    if (length(file.list.spiro) != 0) {
+      spiro <- readxl::read_excel(paste(spiro.path, "/", file.list.spiro[k], sep=""))
+      spiro <- spiro[rowSums(!is.na(spiro)) > 0,]
+      rows_with_bf <- which(spiro[[1]] == "BF")
+      spiro_info <- spiro[1:rows_with_bf, ]
+      
+      spiro <- spiro[(rows_with_bf + 1):nrow(spiro), ]
+      colnames(spiro) <- as.character(spiro[1, ])
+      spiro <- spiro[-c(1,2), ]
+      spiro <- subset(spiro, Fáze == "Zátěž")
+      spiro[4:ncol(spiro)] <- lapply(spiro[4:ncol(spiro)], as.numeric)
+      spiro$t <- gsub(",", ".", spiro$t)
+      spiro$t <- as.POSIXct(spiro$t, format = "%H:%M:%OS", tz = "UTC")
+      spiro$t <- spiro$t - min(spiro$t)
+      time_intervals <- diff(spiro$t)
+      median_interval <- as.numeric(median(time_intervals))
+      closest_rows <- round(5 / median_interval)
+      spiro$VT_5s <- zoo::rollmean(spiro$VT, k = closest_rows, align = "right", fill = NA)
+    }
     
-    spiro <- spiro[(rows_with_bf + 1):nrow(spiro), ]
-    colnames(spiro) <- as.character(spiro[1, ])
-    spiro <- spiro[-c(1,2), ]
-    spiro <- subset(spiro, Fáze == "Zátěž")
-    spiro[4:ncol(spiro)] <- lapply(spiro[4:ncol(spiro)], as.numeric)
-    spiro$t <- gsub(",", ".", spiro$t)
-    spiro$t <- as.POSIXct(spiro$t, format = "%H:%M:%OS", tz = "UTC")
-    spiro$t <- spiro$t - min(spiro$t)
-    time_intervals <- diff(spiro$t)
-    median_interval <- as.numeric(median(time_intervals))
-    closest_rows <- round(5 / median_interval)
-    spiro$VT_5s <- zoo::rollmean(spiro$VT, k = closest_rows, align = "right", fill = NA)
-  }
-  
-  s.datum.mer <- format(as.Date(spiro_info[[3]][which(spiro_info[[1]] == "Počáteční čas")], format = "%d.%m.%Y %H:%M"), "%d/%m/%Y")
-  s.datum.nar <- format(as.Date(spiro_info[[3]][which(spiro_info[[1]] == "Datum narození")], format = "%d.%m.%Y"),"%d.%m.%Y")
-  s.age <- floor(as.integer(difftime(as.Date(spiro_info[[3]][which(spiro_info[[1]] == "Počáteční čas")], format = "%d.%m.%Y %H:%M"), as.Date(spiro_info[[3]][which(spiro_info[[1]] == "Datum narození")], format = "%d.%m.%Y")), units = "days") / 365.25)
-  s.height <- as.numeric(gsub("cm", "", gsub(",", ".", spiro_info[[3]][which(spiro_info[[1]] == "Výška")][1])))  
-  FVC <- as.numeric(gsub("L", "", gsub(",", ".", spiro_info[[3]][which(spiro_info[[1]] == "VC")][1]))) 
-  FEV1 <-  as.numeric(gsub("L", "", gsub(",", ".", spiro_info[[3]][which(spiro_info[[1]] == "FEV1")][1])))
-  s.pomer <- round(FEV1/FVC*100,1)
-  VO2max <- round(max(spiro$`V'O2`), 1)
-  VO2_kg <- as.numeric(spiro_info[which(spiro_info[,1] == "V'O2/kg"), 12])
-  vykon <- as.numeric(round(max(spiro$WR),0))
-  vykon_kg <- as.numeric(vykon/vaha)
-  hrmax <- round(max(spiro$TF),0)
-  tep.kyslik <- as.numeric(spiro_info[which(spiro_info[,1] == "V'O2/HR"), 12])
-  anp <- as.numeric(ifelse(spiro_info[which(spiro_info[,1] == "TF"),9]!="-", as.numeric(spiro_info[which(spiro_info[,1] == "TF"),9]), as.numeric(spiro_info[which(spiro_info[,1] == "TF"),15])*0.85))
-  min.ventilace <- as.numeric(gsub(",", ".", spiro_info[which(spiro_info[,1] == "V'E"), 12]))
-  dech.frek <- spiro_info[which(spiro_info[,1] == "BF"), 12]
-  dech.objem <- round(max(spiro$VT_5s[which.max(as.numeric(format(spiro$t, "%H%M%S")) > 100):nrow(spiro)]),1)
-  dech.objem.per <- round((dech.objem/FVC)*100,0)
-  rer <- round(max(spiro$RER),2)
-  LaMax <- la
-  
-  
-  #Spiroergometry table
-  columns_s <- c("Antropometrie", "Hodnota", "V3", "Spiroergometrie", "Absolutní", "Relativní (TH)", "% z nál. hodnoty" ,"Relativní (ATH)")
-  df3 = data.frame(matrix(nrow = 14, ncol = length(columns_s))) 
-  colnames(df3) <- columns_s
-  df3$Antropometrie <-  `length<-`(c("Datum narození", "Věk", "Výška", "TH - Hmotnost", "Tuk", "ATH - Aktivní tělesná hmota", NA, "Klidová ventilace", "FVC", "FEV1", "Poměr FVC/FEV1"), nrow(df3))
-  df3$Spiroergometrie <- `length<-`(c("VO2max", "Dosažený výkon", "HrMax", "Tepový kyslík", "ANP", NA, NA, "Ventilace", "Minutová ventilace (l/min)", "Dechová frekvence", "Dechový objem", "Dechový objem %", "RER", "LaMax"),nrow(df3))
-  df3$V3[8] <- "% z nál. hodnoty"
-  df3$`Relativní (TH)`[8] <- "Optimum"
-  
-  df3[1,2] <- datum_nar
-  df3[2,2] <- age
-  df3[3,2] <-  paste(s.height, "cm", sep=" ")
-  df3[4,2] <- paste(vaha, "kg", sep=" ")
-  df3[5,2] <- paste(fat, "%", sep=" ")
-  df3[6,2] <- paste(ath, "kg", sep=" ")
-  df3[9,2] <- paste(FVC,"l", sep=" ")
-  df3[10,2] <- paste(FEV1,"l", sep=" ")
-  df3[11,2] <- paste(s.pomer,"%", sep=" ")
-  df3[9,3] <- round((FVC/sports_data$FVC[sports_data$Sport==sport])*100,0)
-  df3[10,3] <- round((FEV1/sports_data$FEV1[sports_data$Sport==sport])*100,0)
-  df3[1,7] <- round((VO2_kg/sports_data$VO2max[sports_data$Sport==sport])*100,0)
-  df3[2,7] <- round(((vykon/vaha)/sports_data$PowerVO2[sports_data$Sport==sport])*100,0)
-  df3[1,5] <- paste(VO2max,"l", sep=" ")
-  df3[2,5] <- paste(vykon,"W", sep=" ")
-  df3[3,5] <- paste(hrmax,"BPM", sep=" ")
-  df3[4,5] <- paste(tep.kyslik,"ml/kg", sep=" ")
-  df3[5,5] <- paste(round(anp,0),"BPM", sep=" ")
-  df3[9,5] <- paste(min.ventilace,"l/min", sep=" ")
-  df3[10,5] <- paste(dech.frek,"d/min", sep=" ")
-  df3[11,5] <- paste(dech.objem,"l", sep=" ")
-  df3[12,5] <- paste(dech.objem.per,"%", sep=" ")
-  df3[13,5] <- rer
-  df3[14,5] <- ifelse(is.empty(la), NA, paste(la, "mmol/l", sep = " "))
-  df3[1,6] <- paste(VO2_kg, "ml/min/kg", sep=" ")
-  df3[2,6] <- paste(round(vykon/vaha, 1), "W/kg", sep=" ")
-  df3[1,8] <- paste(round((VO2max*1000)/ath,1), "ml/min/kg", sep=" ")
-  df3[2,8] <- paste(round(vykon/ath, 1), "W/kg", sep=" ")
-  df3[9,6] <- round(30*FVC,0)
-  df3[10,6] <- "50-60"
-  df3[12,6] <- "50-60"
-  df3[13,6] <- "1.08-1.18"
-  df3 <- df3[-7,]
-  
-  
-  # Training zones definition
-  columns_tz <- c("Zóna", "od (BPM)", "do (BPM)")
-  tz = data.frame(matrix(nrow = 3, ncol = length(columns_tz))) 
-  colnames(tz) <- columns_tz
-  tz$Zóna <- c("Aerobní", "Smíšená", "Anaerobní")
-  tz$`od (BPM)`[2] <- round((anp / 0.85)*0.76,0)
-  tz$`od (BPM)`[3] <- round(anp,0)
-  tz$`do (BPM)`[1] <- round((anp / 0.85)*0.75,0)
-  tz$`do (BPM)`[2] <- round((anp / 0.85)*0.84,0)
-  
-  
-  vo2_range <- range(spiro$`V'O2`)
-  coeff <- vo2_range * 10 
-  
-
-  
-  #### Spiroergometry history table ####
-  if (!exists("df4")) {
-    df4 <- data.frame()
-    df4 <- df4[nrow(df4) + 1,]
-  }
-  
-  
-  df4$Date_meas. <- append(na.omit(df4$Date_meas.), datum_mer)
-  df4$Name <- append(na.omit(df4$Name), fullname)
-  df4$Weight <- append(na.omit(df4$Weight), vaha)
-  df4$Fat <- append(na.omit(df4$Fat), fat)
-  df4$VO2max_l <- append(na.omit(df4$VO2max), VO2max)
-  df4$`VO2_kg/l` <- append(na.omit(df4$VO2_kg), VO2_kg)
-  df4$vykon_W <- append(na.omit(df4$vykon_W), vykon)
-  df4$`vykon_l/kg` <- append(na.omit(df4$`vykon_l/kg`), round(vykon_kg,1))
-  df4$hrmax_BPM<- append(na.omit(df4$hrmax), hrmax)
-  df4$anp_BPM <- append(na.omit(df4$anp), round(anp,0))
-  df4$tep_kys_ml <- append(na.omit(df4$tep_kys), tep.kyslik)
-  df4$vt_l <- append(na.omit(df4$vt), dech.objem)
-  df4$RER <- append(na.omit(df4$RER), rer)
-  df4$`LaMax_mmol/l` <- append(na.omit(df4$LaMax), la)
-  df4$FEV1_l <- append(df4$FEV1_l[1:length(df4$FEV1_l)-1], FEV1)
-  df4$FVC_l <- append(na.omit(df4$FVC), FVC)
-  df4$aerobni_Z_do <- append(na.omit(df4$aerobni_Z_do), round((anp / 0.85)*0.75,0))
-  df4$smisena_Z_od <- append(na.omit(df4$smisena_Z_od), round((anp / 0.85)*0.76,0))
-  df4$smisena_Z_do <- append(na.omit(df4$smisena_Z_do), round((anp / 0.85)*0.84,0))
-  df4$anaerobni_Z_od <- append(na.omit(df4$anaerobni_Z_od), anp)
-  df4 <- add_row(df4)
-  
-
-  hrmin <- min(spiro$TF)
-  
-  # Y axis limits calculation
-  ylim.prim <- c(0, min.ventilace*1.1)
-  ylim.sec <- c(hrmin*0.9, hrmax*1.05)  
-  
-  b <- diff(ylim.prim)/diff(ylim.sec)
-  a <- ylim.prim[1] - b*ylim.sec[1]
-  
-  
-  #### Spiroergometry plots ####
-  plot2 <- ggplot(spiro, aes(x = t)) +
-    geom_line(aes(y = a + TF*b, color = "Tepová frekvence (BPM)", linetype = "Tepová frekvence (BPM)"), size = 1) +
-    geom_line(aes(y = `V'E`, color = "Minutová ventilace (l/min)", linetype = "Minutová ventilace (l/min)"), size = 0.5, alpha = 0.2, linetype = "dashed") +
-    geom_smooth(aes(y = `V'E`), color = "black", linetype = "solid", size = 1, method = "loess", se = FALSE, span = 0.2) +
-    scale_y_continuous(
-      name = "Minutová ventilace (l/min)", 
-      labels = scales::comma,
-      sec.axis = sec_axis(~ (. - a)/b, name = "Tepová frekvence (BPM)")
-    ) +
-    scale_x_datetime(labels = scales::date_format("%M:%S"), date_breaks = "1 min") +
-    theme_classic() +
-    theme(
-      text = element_text(size = 30),
-      panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank(),
-      axis.line = element_line(colour = "black", linewidth = 1.5),
-      axis.text.x = element_text(angle = -45, hjust = 0),
-      axis.title.y = element_text(size = 25),
-      legend.position = "bottom"
-    ) +
-    scale_linetype_manual(values = c('solid', 'solid'), 
-                          labels = c("Minutová ventilace (l/min)", "Tepová frekvence (BPM)")) +
-    scale_color_manual(values = c("Minutová ventilace (l/min)" = "black", "Tepová frekvence (BPM)" = "orange")) +
-    xlab(expression("Čas")) +
-    ylab("Hodnota") +
-    labs(colour="") +
-    guides(
-      color = guide_legend(override.aes = list(linetype = c("solid", "solid"))), 
-      linetype = "none"
-    )
-  
-  plot3 <- ggplot(spiro, aes(x = t)) +
-    geom_line(aes(y = `V'O2`), color = "darkmagenta", size = 0.5, alpha = 0.2, linetype = "dashed") +
-    geom_smooth(aes(y = `V'O2`), color = "darkmagenta", linetype = "solid", size = 1, method = "loess", se = FALSE, span = 0.3) +
-    scale_x_datetime(labels = scales::date_format("%M:%S"), date_breaks = "1 min") +
-    scale_y_continuous(
-      name = "Spotřeba kyslíku (l)", 
-      labels = scales::comma
-    ) +
-    theme_classic() +
-    theme(
-      text = element_text(size = 30),
-      panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank(),
-      axis.line = element_line(colour = "black", linewidth = 1.5),
-      axis.text.x = element_text(angle = -45, hjust = 0),
-      axis.title.y = element_text(size = 25),
-      legend.position = "none"
-    ) +
-    xlab(expression("Čas")) +
-    ylab("Spotřeba kyslíku (l)") 
-  
-
-
-  combined_plot <- plot2 + plot3 +
-    plot_annotation(
-      title = 'Spiroergometrie',
-      caption = '',
-      theme = theme(plot.title = element_text(size = 30, hjust = 0.5))
-    )
+    s.datum.mer <- format(as.Date(spiro_info[[3]][which(spiro_info[[1]] == "Počáteční čas")], format = "%d.%m.%Y %H:%M"), "%d/%m/%Y")
+    s.datum.nar <- format(as.Date(spiro_info[[3]][which(spiro_info[[1]] == "Datum narození")], format = "%d.%m.%Y"),"%d.%m.%Y")
+    s.age <- floor(as.integer(difftime(as.Date(spiro_info[[3]][which(spiro_info[[1]] == "Počáteční čas")], format = "%d.%m.%Y %H:%M"), as.Date(spiro_info[[3]][which(spiro_info[[1]] == "Datum narození")], format = "%d.%m.%Y")), units = "days") / 365.25)
+    s.height <- as.numeric(gsub("cm", "", gsub(",", ".", spiro_info[[3]][which(spiro_info[[1]] == "Výška")][1])))  
+    FVC <- as.numeric(gsub("L", "", gsub(",", ".", spiro_info[[3]][which(spiro_info[[1]] == "VC")][1]))) 
+    FEV1 <-  as.numeric(gsub("L", "", gsub(",", ".", spiro_info[[3]][which(spiro_info[[1]] == "FEV1")][1])))
+    s.pomer <- round(FEV1/FVC*100,1)
+    VO2max <- round(max(spiro$`V'O2`), 1)
+    VO2_kg <- as.numeric(spiro_info[which(spiro_info[,1] == "V'O2/kg"), 12])
+    vykon <- as.numeric(round(max(spiro$WR),0))
+    vykon_kg <- as.numeric(vykon/vaha)
+    hrmax <- round(max(spiro$TF),0)
+    tep.kyslik <- as.numeric(spiro_info[which(spiro_info[,1] == "V'O2/HR"), 12])
+    anp <- as.numeric(ifelse(spiro_info[which(spiro_info[,1] == "TF"),9]!="-", as.numeric(spiro_info[which(spiro_info[,1] == "TF"),9]), as.numeric(spiro_info[which(spiro_info[,1] == "TF"),15])*0.85))
+    min.ventilace <- as.numeric(gsub(",", ".", spiro_info[which(spiro_info[,1] == "V'E"), 12]))
+    dech.frek <- spiro_info[which(spiro_info[,1] == "BF"), 12]
+    dech.objem <- round(max(spiro$VT_5s[which.max(as.numeric(format(spiro$t, "%H%M%S")) > 100):nrow(spiro)]),1)
+    dech.objem.per <- round((dech.objem/FVC)*100,0)
+    rer <- round(max(spiro$RER),2)
+    LaMax <- la
+    
+    
+    #Spiroergometry table
+    columns_s <- c("Antropometrie", "Hodnota", "V3", "Spiroergometrie", "Absolutní", "Relativní (TH)", "% z nál. hodnoty" ,"Relativní (ATH)")
+    df3 = data.frame(matrix(nrow = 14, ncol = length(columns_s))) 
+    colnames(df3) <- columns_s
+    df3$Antropometrie <-  `length<-`(c("Datum narození", "Věk", "Výška", "TH - Hmotnost", "Tuk", "ATH - Aktivní tělesná hmota", NA, "Klidová ventilace", "FVC", "FEV1", "Poměr FVC/FEV1"), nrow(df3))
+    df3$Spiroergometrie <- `length<-`(c("VO2max", "Dosažený výkon", "HrMax", "Tepový kyslík", "ANP", NA, NA, "Ventilace", "Minutová ventilace", "Dechová frekvence", "Dechový objem", "Dechový objem %", "RER", "LaMax"),nrow(df3))
+    df3$V3[8] <- "% z nál. hodnoty"
+    df3$`Relativní (TH)`[8] <- "Optimum"
+    
+    df3[1,2] <- datum_nar
+    df3[2,2] <- age
+    df3[3,2] <-  paste(s.height, "cm", sep=" ")
+    df3[4,2] <- paste(vaha, "kg", sep=" ")
+    df3[5,2] <- paste(fat, "%", sep=" ")
+    df3[6,2] <- paste(ath, "kg", sep=" ")
+    df3[9,2] <- paste(FVC,"l", sep=" ")
+    df3[10,2] <- paste(FEV1,"l", sep=" ")
+    df3[11,2] <- paste(s.pomer,"%", sep=" ")
+    df3[9,3] <- round((FVC/sports_data$FVC[sports_data$Sport==sport])*100,0)
+    df3[10,3] <- round((FEV1/sports_data$FEV1[sports_data$Sport==sport])*100,0)
+    df3[1,7] <- round((VO2_kg/sports_data$VO2max[sports_data$Sport==sport])*100,0)
+    df3[2,7] <- round(((vykon/vaha)/sports_data$PowerVO2[sports_data$Sport==sport])*100,0)
+    df3[1,5] <- paste(VO2max,"l", sep=" ")
+    df3[2,5] <- paste(vykon,"W", sep=" ")
+    df3[3,5] <- paste(hrmax,"BPM", sep=" ")
+    df3[4,5] <- paste(tep.kyslik,"ml/kg", sep=" ")
+    df3[5,5] <- paste(round(anp,0),"BPM", sep=" ")
+    df3[9,5] <- paste(min.ventilace,"l/min", sep=" ")
+    df3[10,5] <- paste(dech.frek,"d/min", sep=" ")
+    df3[11,5] <- paste(dech.objem,"l", sep=" ")
+    df3[12,5] <- paste(dech.objem.per,"%", sep=" ")
+    df3[13,5] <- rer
+    df3[14,5] <- ifelse(is.empty(la), NA, paste(la, "mmol/l", sep = " "))
+    df3[1,6] <- paste(VO2_kg, "ml/min/kg", sep=" ")
+    df3[2,6] <- paste(round(vykon/vaha, 1), "W/kg", sep=" ")
+    df3[1,8] <- paste(round((VO2max*1000)/ath,1), "ml/min/kg", sep=" ")
+    df3[2,8] <- paste(round(vykon/ath, 1), "W/kg", sep=" ")
+    df3[9,6] <- round(30*FVC,0)
+    df3[10,6] <- "50-60"
+    df3[12,6] <- "50-60"
+    df3[13,6] <- "1.08-1.18"
+    df3 <- df3[-7,]
+    
+    
+    # Training zones definition
+    columns_tz <- c("Zóna", "od (BPM)", "do (BPM)")
+    tz = data.frame(matrix(nrow = 3, ncol = length(columns_tz))) 
+    colnames(tz) <- columns_tz
+    tz$Zóna <- c("Aerobní", "Smíšená", "Anaerobní")
+    tz$`od (BPM)`[2] <- round((anp / 0.85)*0.76,0)
+    tz$`od (BPM)`[3] <- round(anp,0)
+    tz$`do (BPM)`[1] <- round((anp / 0.85)*0.75,0)
+    tz$`do (BPM)`[2] <- round((anp / 0.85)*0.84,0)
+    
+    
+    vo2_range <- range(spiro$`V'O2`)
+    coeff <- vo2_range * 10 
+    
+    
+    
+    #### Spiroergometry history table ####
+    if (!exists("df4")) {
+      df4 <- data.frame()
+      df4 <- df4[nrow(df4) + 1,]
+    }
+    
+    
+    df4$Date_meas. <- append(na.omit(df4$Date_meas.), datum_mer)
+    df4$Name <- append(na.omit(df4$Name), fullname)
+    df4$Weight <- append(na.omit(df4$Weight), vaha)
+    df4$Fat <- append(na.omit(df4$Fat), fat)
+    df4$VO2max_l <- append(na.omit(df4$VO2max), VO2max)
+    df4$`VO2_kg/l` <- append(na.omit(df4$VO2_kg), VO2_kg)
+    df4$vykon_W <- append(na.omit(df4$vykon_W), vykon)
+    df4$`vykon_l/kg` <- append(na.omit(df4$`vykon_l/kg`), round(vykon_kg,1))
+    df4$hrmax_BPM<- append(na.omit(df4$hrmax), hrmax)
+    df4$anp_BPM <- append(na.omit(df4$anp), round(anp,0))
+    df4$tep_kys_ml <- append(na.omit(df4$tep_kys), tep.kyslik)
+    df4$vt_l <- append(na.omit(df4$vt), dech.objem)
+    df4$RER <- append(na.omit(df4$RER), rer)
+    df4$`LaMax_mmol/l` <- append(na.omit(df4$LaMax), la)
+    df4$FEV1_l <- append(df4$FEV1_l[1:length(df4$FEV1_l)-1], FEV1)
+    df4$FVC_l <- append(na.omit(df4$FVC), FVC)
+    df4$aerobni_Z_do <- append(na.omit(df4$aerobni_Z_do), round((anp / 0.85)*0.75,0))
+    df4$smisena_Z_od <- append(na.omit(df4$smisena_Z_od), round((anp / 0.85)*0.76,0))
+    df4$smisena_Z_do <- append(na.omit(df4$smisena_Z_do), round((anp / 0.85)*0.84,0))
+    df4$anaerobni_Z_od <- append(na.omit(df4$anaerobni_Z_od), anp)
+    df4 <- add_row(df4)
+    
+    
+    hrmin <- min(spiro$TF)
+    
+    # Y axis limits calculation
+    ylim.prim <- c(0, min.ventilace*1.1)
+    ylim.sec <- c(hrmin*0.9, hrmax*1.05)  
+    
+    b <- diff(ylim.prim)/diff(ylim.sec)
+    a <- ylim.prim[1] - b*ylim.sec[1]
+    
+    
+    #### Spiroergometry plots ####
+    plot2 <- ggplot(spiro, aes(x = t)) +
+      geom_line(aes(y = a + TF*b, color = "Tepová frekvence (BPM)", linetype = "Tepová frekvence (BPM)"), size = 1) +
+      geom_line(aes(y = `V'E`, color = "Minutová ventilace (l/min)", linetype = "Minutová ventilace (l/min)"), size = 0.5, alpha = 0.2, linetype = "dashed") +
+      geom_smooth(aes(y = `V'E`), color = "black", linetype = "solid", size = 1, method = "loess", se = FALSE, span = 0.2) +
+      scale_y_continuous(
+        name = "Minutová ventilace (l/min)", 
+        labels = scales::comma,
+        sec.axis = sec_axis(~ (. - a)/b, name = "Tepová frekvence (BPM)")
+      ) +
+      scale_x_datetime(labels = scales::date_format("%M:%S"), date_breaks = "1 min") +
+      theme_classic() +
+      theme(
+        text = element_text(size = 30),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black", linewidth = 1.5),
+        axis.text.x = element_text(angle = -45, hjust = 0),
+        axis.title.y = element_text(size = 25),
+        legend.position = "bottom"
+      ) +
+      scale_linetype_manual(values = c('solid', 'solid'), 
+                            labels = c("Minutová ventilace (l/min)", "Tepová frekvence (BPM)")) +
+      scale_color_manual(values = c("Minutová ventilace (l/min)" = "black", "Tepová frekvence (BPM)" = "orange")) +
+      xlab(expression("Čas")) +
+      ylab("Hodnota") +
+      labs(colour="") +
+      guides(
+        color = guide_legend(override.aes = list(linetype = c("solid", "solid"))), 
+        linetype = "none"
+      )
+    
+    plot3 <- ggplot(spiro, aes(x = t)) +
+      geom_line(aes(y = `V'O2`), color = "darkmagenta", size = 0.5, alpha = 0.2, linetype = "dashed") +
+      geom_smooth(aes(y = `V'O2`), color = "darkmagenta", linetype = "solid", size = 1, method = "loess", se = FALSE, span = 0.3) +
+      scale_x_datetime(labels = scales::date_format("%M:%S"), date_breaks = "1 min") +
+      scale_y_continuous(
+        name = "Spotřeba kyslíku (l)", 
+        labels = scales::comma
+      ) +
+      theme_classic() +
+      theme(
+        text = element_text(size = 30),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black", linewidth = 1.5),
+        axis.text.x = element_text(angle = -45, hjust = 0),
+        axis.title.y = element_text(size = 25),
+        legend.position = "none"
+      ) +
+      xlab(expression("Čas")) +
+      ylab("Spotřeba kyslíku (l)") 
+    
+    
+    
+    combined_plot <- plot2 + plot3 +
+      plot_annotation(
+        title = 'Spiroergometrie',
+        caption = '',
+        theme = theme(plot.title = element_text(size = 30, hjust = 0.5))
+      )
   }
   
   
@@ -916,10 +922,10 @@ for(i in 1:length(file.list)) {
   df2$`Work (kJ)` <- append(na.omit(df2$`Work (kJ)`), totalw/1000)
   df2$`HR_max (BPM)` <- as.numeric(append(na.omit(df2$`HR_max (BPM)`), max(df$Heart.rate..bpm., na.rm =T)))
   df2$`La_max (mmol/l)` <- append(na.omit(df2$`La_max (mmol/l)`), la)
-
   
   
-#### Wingate plots ####
+  
+  #### Wingate plots ####
   my_breaks <- seq(0, tail(df$Elapsed.time.total..h.mm.ss.hh.,n=1)+5, by = 5)
   
   
@@ -950,7 +956,7 @@ for(i in 1:length(file.list)) {
         labs(colour="") +
         scale_x_continuous(breaks = my_breaks)  
     }
-    else if (tri_graf == "NO" | id %in% spatne.compar_2 & id %in% file.list.compar.bez) {
+    else if (tri_graf == "NO" | !(id %in% file.list.compar_2.bez) & id %in% file.list.compar.bez) {
       plot1 <- ggplot2::ggplot(df, aes(x = Elapsed.time.total..h.mm.ss.hh., y = Power..W.)) + 
         theme_classic()  + 
         theme(text = element_text(size = 30),
@@ -974,9 +980,34 @@ for(i in 1:length(file.list)) {
         ggtitle("Anaerobní Wingate test - 30 s")  + 
         labs(colour="") +
         scale_x_continuous(breaks = my_breaks)  
-    } }
- if (exists("file.list.compar.bez")) {
-   if (srovnani == "YES" & id %in% file.list.compar.bez) {
+    } 
+    else if (exists("file.list.compar.bez") & !exists("file.list.compar_2.bez")) {
+      if (srovnani == "YES" & id %in% file.list.compar.bez) {
+        plot1 <- ggplot2::ggplot(df, aes(x = Elapsed.time.total..h.mm.ss.hh., y = Power..W.)) + 
+          theme_classic()  + 
+          theme(text = element_text(size = 30),
+                panel.grid.major = element_line(color = "grey90",
+                                                linewidth = 0.1,
+                                                linetype = 1),
+                panel.grid.minor.y = element_line(color = "grey90",
+                                                  linewidth = 0.1,
+                                                  linetype = 1),
+                axis.line = element_line(colour = "black",
+                                         linewidth = 1.5)) +
+          geom_line(aes(color = "grey", linetype = "dashed")) +
+          geom_line(data = compare.wingate, aes(y = y2, color = "orange", linetype = "solid"), lwd = 0.9) + 
+          geom_line(data = df, aes(y=y, x = Elapsed.time.total..h.mm.ss.hh., color = "black", linetype = "solid"), lwd = 0.9) + 
+          geom_line(aes(y = mean(Power..W.), color= "blue", linetype = "dashed"), lwd = 0.9) +
+          scale_linetype_manual(values = c('dashed', 'solid')) +
+          scale_colour_identity(guide = "legend", labels = c(paste("vyhlazená data,", datum_mer, sep = " "), "průměr měření", "hrubá data", format(as.Date(antropo$Date_measurement[length(antropo$Date_measurement)-1]), "%d/%m/%Y"))) + guides(color = guide_legend(override.aes = list(linetype = c("solid", "solid", "dashed", "solid")))) + 
+          guides(linetype = "none") + 
+          xlab(expression("Čas (s)")) + 
+          ylab("Výkon (W)") + 
+          ggtitle("Anaerobní Wingate test - 30 s")  + 
+          labs(colour="") +
+          scale_x_continuous(breaks = my_breaks)
+      }
+    } else { 
       plot1 <- ggplot2::ggplot(df, aes(x = Elapsed.time.total..h.mm.ss.hh., y = Power..W.)) + 
         theme_classic()  + 
         theme(text = element_text(size = 30),
@@ -989,42 +1020,19 @@ for(i in 1:length(file.list)) {
               axis.line = element_line(colour = "black",
                                        linewidth = 1.5)) +
         geom_line(aes(color = "grey", linetype = "dashed")) +
-        geom_line(data = compare.wingate, aes(y = y2, color = "orange", linetype = "solid"), lwd = 0.9) + 
-        geom_line(data = df, aes(y=y, x = Elapsed.time.total..h.mm.ss.hh., color = "black", linetype = "solid"), lwd = 0.9) + 
+        geom_line(aes(y=y, color = "black", linetype = "solid"), lwd = 0.9) + 
         geom_line(aes(y = mean(Power..W.), color= "blue", linetype = "dashed"), lwd = 0.9) +
         scale_linetype_manual(values = c('dashed', 'solid')) +
-        scale_colour_identity(guide = "legend", labels = c(paste("vyhlazená data,", datum_mer, sep = " "), "průměr měření", "hrubá data", format(as.Date(antropo$Date_measurement[length(antropo$Date_measurement)-1]), "%d/%m/%Y"))) + guides(color = guide_legend(override.aes = list(linetype = c("solid", "solid", "dashed", "solid")))) + 
+        scale_colour_identity(guide = "legend", labels = c(paste("vyhlazená data,", datum_mer, sep = " "), "průměr měření", "hrubá data")) + guides(color = guide_legend(override.aes = list(linetype = c("solid", "dashed", "dashed")))) + 
         guides(linetype = "none") + 
         xlab(expression("Čas (s)")) + 
         ylab("Výkon (W)") + 
         ggtitle("Anaerobní Wingate test - 30 s")  + 
         labs(colour="") +
-        scale_x_continuous(breaks = my_breaks)
-   } else { 
-     plot1 <- ggplot2::ggplot(df, aes(x = Elapsed.time.total..h.mm.ss.hh., y = Power..W.)) + 
-     theme_classic()  + 
-     theme(text = element_text(size = 30),
-           panel.grid.major = element_line(color = "grey90",
-                                           linewidth = 0.1,
-                                           linetype = 1),
-           panel.grid.minor.y = element_line(color = "grey90",
-                                             linewidth = 0.1,
-                                             linetype = 1),
-           axis.line = element_line(colour = "black",
-                                    linewidth = 1.5)) +
-     geom_line(aes(color = "grey", linetype = "dashed")) +
-     geom_line(aes(y=y, color = "black", linetype = "solid"), lwd = 0.9) + 
-     geom_line(aes(y = mean(Power..W.), color= "blue", linetype = "dashed"), lwd = 0.9) +
-     scale_linetype_manual(values = c('dashed', 'solid')) +
-     scale_colour_identity(guide = "legend", labels = c(paste("vyhlazená data,", datum_mer, sep = " "), "průměr měření", "hrubá data")) + guides(color = guide_legend(override.aes = list(linetype = c("solid", "dashed", "dashed")))) + 
-     guides(linetype = "none") + 
-     xlab(expression("Čas (s)")) + 
-     ylab("Výkon (W)") + 
-     ggtitle("Anaerobní Wingate test - 30 s")  + 
-     labs(colour="") +
-     scale_x_continuous(breaks = my_breaks)  
+        scale_x_continuous(breaks = my_breaks)  
     }
-  } else {
+  }
+  else {
     plot1 <- ggplot2::ggplot(df, aes(x = Elapsed.time.total..h.mm.ss.hh., y = Power..W.)) + 
       theme_classic()  + 
       theme(text = element_text(size = 30),
@@ -1050,7 +1058,8 @@ for(i in 1:length(file.list)) {
   }
   
   
-#### Export of Reporting tables ####
+  
+  #### Export of Reporting tables ####
   table1 <- df1 %>% gt() %>% 
     tab_header(title = fullname, subtitle = paste("Datum měření: ",datum_mer, sep = "")) %>% 
     cols_label(V2 = "") %>% sub_missing(columns = everything(),
@@ -1132,101 +1141,101 @@ for(i in 1:length(file.list)) {
   
   #tabulka spiro
   if (dotaz_spiro == "YES") {
-  table3 <- df3 %>% 
-    gt() %>% 
-    tab_header(
-      title = fullname, 
-      subtitle = paste("Datum měření: ", datum_mer, sep = "")
-    ) %>% 
-    cols_label(Hodnota = "") %>% 
-    cols_label(V3 = "")  %>% 
-    sub_missing(columns = everything(), rows = everything(), missing_text = "")  %>%
-    tab_style(
-      style = cell_text(weight = "bold"),
-      locations = cells_column_labels()
-    ) %>%
-    tab_style(
-      style = cell_text(weight = "bold"),
-      locations = cells_body(
-        columns = c("Antropometrie", "Spiroergometrie")
+    table3 <- df3 %>% 
+      gt() %>% 
+      tab_header(
+        title = fullname, 
+        subtitle = paste("Datum měření: ", datum_mer, sep = "")
+      ) %>% 
+      cols_label(Hodnota = "") %>% 
+      cols_label(V3 = "")  %>% 
+      sub_missing(columns = everything(), rows = everything(), missing_text = "")  %>%
+      tab_style(
+        style = cell_text(weight = "bold"),
+        locations = cells_column_labels()
+      ) %>%
+      tab_style(
+        style = cell_text(weight = "bold"),
+        locations = cells_body(
+          columns = c("Antropometrie", "Spiroergometrie")
+        )
+      ) %>%
+      tab_style(
+        style = cell_text(weight = "bold"),
+        locations = cells_body(
+          rows = 7,
+          columns = everything()  # Apply bold style to all columns in row 9
+        )
+      ) %>%
+      tab_style(
+        style = "padding-right:30px",
+        locations = cells_column_labels()
+      ) %>%
+      tab_style(
+        style = "padding-right:30px",
+        locations = cells_body()
+      ) %>% 
+      tab_options(
+        table.width = pct(c(100)),
+        container.width = 1600,
+        container.height = 670,
+        table.font.size = px(18L),
+        heading.padding = pct(0)
+      ) %>%
+      gtExtras::gt_add_divider(columns = "V3", style = "solid", color = "#808080") %>% 
+      opt_table_lines(extent = "none") %>%
+      tab_style(
+        style = cell_borders(
+          sides = "top",
+          color = "#808080",
+          style = "solid"
+        ),
+        locations = cells_body(
+          rows = c(1,8)
+        )
+      )  %>% 
+      tab_style(
+        style = cell_text(align = "right"),
+        locations = cells_column_labels(columns = c("Absolutní", "Relativní (TH)", "% z nál. hodnoty", "Relativní (ATH)"))
+      ) %>% 
+      cols_align(
+        align = c("center"),
+        columns = c("V3", "Absolutní", "Relativní (TH)", "% z nál. hodnoty", "Relativní (ATH)")
+      ) %>% 
+      tab_style(
+        style = cell_text(align = "center"),
+        locations = cells_body(columns = c("V3", "Absolutní", "Relativní (TH)", "% z nál. hodnoty", "Relativní (ATH)"))
+      ) %>%
+      tab_style(
+        style = "padding-bottom:20px",
+        locations = cells_body(rows = 6)
       )
-    ) %>%
-    tab_style(
-      style = cell_text(weight = "bold"),
-      locations = cells_body(
-        rows = 7,
-        columns = everything()  # Apply bold style to all columns in row 9
-      )
-    ) %>%
-    tab_style(
-      style = "padding-right:30px",
-      locations = cells_column_labels()
-    ) %>%
-    tab_style(
-      style = "padding-right:30px",
-      locations = cells_body()
-    ) %>% 
-    tab_options(
-      table.width = pct(c(100)),
-      container.width = 1600,
-      container.height = 670,
-      table.font.size = px(18L),
-      heading.padding = pct(0)
-    ) %>%
-    gtExtras::gt_add_divider(columns = "V3", style = "solid", color = "#808080") %>% 
-    opt_table_lines(extent = "none") %>%
-    tab_style(
-      style = cell_borders(
-        sides = "top",
-        color = "#808080",
-        style = "solid"
-      ),
-      locations = cells_body(
-        rows = c(1,8)
-      )
-    )  %>% 
-    tab_style(
-      style = cell_text(align = "right"),
-      locations = cells_column_labels(columns = c("Absolutní", "Relativní (TH)", "% z nál. hodnoty", "Relativní (ATH)"))
-    ) %>% 
-    cols_align(
-      align = c("center"),
-      columns = c("V3", "Absolutní", "Relativní (TH)", "% z nál. hodnoty", "Relativní (ATH)")
-    ) %>% 
-    tab_style(
-      style = cell_text(align = "center"),
-      locations = cells_body(columns = c("V3", "Absolutní", "Relativní (TH)", "% z nál. hodnoty", "Relativní (ATH)"))
-    ) %>%
-    tab_style(
-      style = "padding-bottom:20px",
-      locations = cells_body(rows = 6)
+    
+    
+    table4  <- tz %>% gt() %>% 
+      tab_header(title = "Tréninkové zóny") %>% 
+      cols_label(Zóna = "")  %>% sub_missing(columns = everything(),
+                                             rows = everything(),
+                                             missing_text = "") %>% 
+      tab_options(
+        table.width = pct(c(100)),
+        container.width = 300,
+        container.height = 600,
+        table.font.size = px(18L),
+        heading.padding = pct(0))
+    
+    table4 %>% gtsave(
+      "t4.png",
+      vwidth = 350,  
+      vheight = 800  
     )
-
- 
-  table4  <- tz %>% gt() %>% 
-    tab_header(title = "Tréninkové zóny") %>% 
-    cols_label(Zóna = "")  %>% sub_missing(columns = everything(),
-                                                                      rows = everything(),
-                                                                      missing_text = "") %>% 
-    tab_options(
-      table.width = pct(c(100)),
-      container.width = 300,
-      container.height = 600,
-      table.font.size = px(18L),
-      heading.padding = pct(0))
-  
-  table4 %>% gtsave(
-    "t4.png",
-    vwidth = 350,  
-    vheight = 800  
-  )
-  
-  png("p2.png", width = 1500, height = 600)
-  plot(combined_plot)
-  dev.off()
-  
-  table3 %>%
-    gtsave("t3.png", vwidth = 1700, vheight = 1000) 
+    
+    png("p2.png", width = 1500, height = 600)
+    plot(combined_plot)
+    dev.off()
+    
+    table3 %>%
+      gtsave("t3.png", vwidth = 1700, vheight = 1000) 
   }
   
   table2 %>%
@@ -1240,45 +1249,45 @@ for(i in 1:length(file.list)) {
   dev.off()
   
   
- #### Radarchart ####
+  #### Radarchart ####
   
   hg_anckg <- round(((an.cap/sports_data$ANC[sports_data$Sport==sport])*100),1)
   hg_ppkg <- round((((pp/vaha)/sports_data$Pmax[sports_data$Sport==sport])*100),1)
-
   
   
-    if (!is.na(sj)) {
+  
+  if (!is.na(sj)) {
     hg_sj <- round(((sj/sports_data$SJ[sports_data$Sport==sport])*100),1)
-  data_radar <- data.frame(
-    `Anaerobní kapacita (J/kg) %` = hg_anckg,
-    `Výkon Wingate  (W/kg) %` = hg_ppkg,
-    `Squat Jump (cm) %`= hg_sj,
-    check.names = FALSE
-  )} else {
     data_radar <- data.frame(
       `Anaerobní kapacita (J/kg) %` = hg_anckg,
       `Výkon Wingate  (W/kg) %` = hg_ppkg,
+      `Squat Jump (cm) %`= hg_sj,
       check.names = FALSE
-    )
-  }
+    )} else {
+      data_radar <- data.frame(
+        `Anaerobní kapacita (J/kg) %` = hg_anckg,
+        `Výkon Wingate  (W/kg) %` = hg_ppkg,
+        check.names = FALSE
+      )
+    }
   
-
-
+  
+  
   if (dotaz_spiro == "YES") {
     hg_Vo2max <- round(((VO2_kg / sports_data$VO2max[sports_data$Sport==sport]) * 100), 1)
     hg_VO2vykon <- round(((vykon_kg / sports_data$PowerVO2[sports_data$Sport==sport]) * 100), 1)
     data_radar <- cbind( `VO2Max (ml/min/kg) %` = hg_Vo2max, data_radar, `Výkon VO2Max (W/kg) %` = hg_VO2vykon)
   }
   
-
+  
   max_values <- rep(100, ncol(data_radar))
   min_values <- rep(0, ncol(data_radar))
-
+  
   data_radar <- rbind(max_values, min_values, data_radar)
   
- 
-
-radarchart2 <- function(df, axistype=0, seg=4, pty=16, pcol=1:8, plty=1:6, plwd=1,
+  
+  
+  radarchart2 <- function(df, axistype=0, seg=4, pty=16, pcol=1:8, plty=1:6, plwd=1,
                           pdensity=NULL, pangle=45, pfcol=NA, cglty=3, cglwd=1,
                           cglcol="navy", axislabcol="blue", title="", maxmin=TRUE,
                           na.itp=TRUE, centerzero=FALSE, vlabels=NULL, vlcex=NULL,
@@ -1449,35 +1458,35 @@ radarchart2 <- function(df, axistype=0, seg=4, pty=16, pcol=1:8, plty=1:6, plwd=
   }
   
   
-if (!is.na(sj) | dotaz_spiro == "YES")  {
-png("radar.png", width = 1124, height = 797)
-
-
-  # Create radar chart
-
-radarchart2(
-    data_radar,
-    axistype = 1,
-    pcol = rgb(0.2, 0.5, 0.5, 0.9),
-    pfcol = NA, 
-    cglcol = "grey",
-    cglty = 1,
-    axislabcol = "grey",
-    caxislabels = seq(0, 100, 25),
-    cglwd = 0.8,
-    vlcex = 1,
-    title = "Rozložení parametrů"
-  )
+  if (!is.na(sj) | dotaz_spiro == "YES")  {
+    png("radar.png", width = 1124, height = 797)
+    
+    
+    # Create radar chart
+    
+    radarchart2(
+      data_radar,
+      axistype = 1,
+      pcol = rgb(0.2, 0.5, 0.5, 0.9),
+      pfcol = NA, 
+      cglcol = "grey",
+      cglty = 1,
+      axislabcol = "grey",
+      caxislabels = seq(0, 100, 25),
+      cglwd = 0.8,
+      vlcex = 1,
+      title = "Rozložení parametrů"
+    )
+    
+    dev.off()
+    
+  }
+  if (!is.na(sj) | dotaz_spiro == "YES") {
+    rmarkdown::render("export_NEOTVIRAT.Rmd", params = list(dotaz_spiro = dotaz_spiro), output_file = paste(id, ".pdf", sep= ""), clean = T, quiet = F)
+  } else {
+    rmarkdown::render("export_NEOTVIRAT_wingate.Rmd", params = list(dotaz_spiro = dotaz_spiro), output_file = paste(id, ".pdf", sep= ""), clean = T, quiet = F)
+  }
   
-dev.off()
-
-}
-if (!is.na(sj) | dotaz_spiro == "YES") {
-  rmarkdown::render("export_NEOTVIRAT.Rmd", params = list(dotaz_spiro = dotaz_spiro), output_file = paste(id, ".pdf", sep= ""), clean = T, quiet = F)
-} else {
-  rmarkdown::render("export_NEOTVIRAT_wingate.Rmd", params = list(dotaz_spiro = dotaz_spiro), output_file = paste(id, ".pdf", sep= ""), clean = T, quiet = F)
-}
-
   fs::file_move(path = paste(wd, "/", id, ".pdf", sep = ""), new_path = paste(wd, "/reporty/", id, ".pdf", sep = ""))
   fs::file_move(path = paste(wd, "/", id, ".tex", sep = ""), new_path = paste(wd, "/vymazat/", id, ".tex", sep = ""))
   file.rename(from = paste(wd, "/", id, "_files", sep = ""), to = paste(wd, "/vymazat/", id, "_files", sep = ""))
@@ -1535,8 +1544,8 @@ if (!dir.exists(paste(wd, "/vysledky/spiro/", sep=""))) {
 
 #### Report printing ####
 if (dotaz_spiro == "YES") {
-df4 <- df4[rev(order(df4$`VO2_kg/l`)), ]
-writexl::write_xlsx(df4, paste(wd, "/vysledky/spiro/spiro_vysledek", "_", team, "_", format(Sys.time(), "_%d-%m %H-%M"), ".xlsx", sep = ""), col_names = T, format_headers = T)
+  df4 <- df4[rev(order(df4$`VO2_kg/l`)), ]
+  writexl::write_xlsx(df4, paste(wd, "/vysledky/spiro/spiro_vysledek", "_", team, "_", format(Sys.time(), "_%d-%m %H-%M"), ".xlsx", sep = ""), col_names = T, format_headers = T)
 }
 
 writexl::write_xlsx(databaze, paste(wd, "/vysledky/vysledek", "_", team, "_", format(Sys.time(), "_%d-%m %H-%M"), ".xlsx", sep = ""), col_names = T, format_headers = T)
