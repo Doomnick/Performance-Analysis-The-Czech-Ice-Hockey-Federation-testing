@@ -15,8 +15,6 @@ library(scales)
 library(webshot)
 
 
-
-
 sports_data <- data.frame(
   Sport = c("hokej-dospělí","hokej-junioři", "hokej-dorost", "gymnastika"),
   FVC = c(4.7, 4.7, 4.7, 3.8),    # Example values for Forced Vital Capacity
@@ -27,7 +25,6 @@ sports_data <- data.frame(
   SJ = c(45, 42, 42, 35),
   ANC = c(365, 330, 320 ,300)
 )
-
 
 
 file.path.an <- paste(wd, "/antropometrie", sep = "") 
