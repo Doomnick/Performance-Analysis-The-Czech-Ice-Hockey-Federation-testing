@@ -26,7 +26,7 @@ Folders ANTROPOMETRIE, WINGATE, and possibly SPIRO must contain files with match
 Procedure:
 
 1. Open the file Wingate_Spiro_radarchart.
-2. On the 3rd line of the script, check the path to the folder with the script in the correct format (e.g., "C:/Users//Documents/Wingate+Spiro").
+2. On the 3rd line of the script, check the path to the folder with the script in the correct format (e.g., "C:/Users/Documents/Wingate+Spiro").
 3. Run the script using the button on the top right of the code window.
 4. A prompt for the spirometry report will appear. If you select YES, files from the spiro folder will be included in the report.
 5. The next prompt is for comparison Wingate files; you can add two comparisons.
