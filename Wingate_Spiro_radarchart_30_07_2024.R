@@ -90,6 +90,9 @@ file.list.bez <- sort(tools::file_path_sans_ext(file.list))
 file.list.spiro <- list.files(path = spiro.path, pattern = c('*.xls'))
 file.list.spiro.bez <- sort(tools::file_path_sans_ext(file.list.spiro))
 
+file.list.compar_2.bez <- NA
+file.list.compar.bez <- NA
+
 
 # Check type of anthropometry file
 
@@ -136,6 +139,9 @@ if (srovnani == "YES") {
 
 duplikaty <- duplicated(file.list.an.bez)
 
+tri_graf <- NA
+library(dplyr)
+
 # Raw data Error reporting
 if ("TRUE" %in% duplikaty) {
   print("Duplikaty v souboru s antropometrii:")
@@ -147,15 +153,18 @@ if ("TRUE" %in% duplikaty) {
     print(paste("Nalezeno celkem", length(which(duplikaty=="TRUE")), "duplikátù", sep = " "))
     duplikaty_check <- winDialog("yesno", paste("Nalezeno celkem", length(which(duplikaty=="TRUE")), "duplikátů v antropometrii, pokračovat v exportu?", sep = " "))
     pocty.duplikatu.an <- dplyr::as_tibble(table(file.list.an.bez))
-    pocty.duplikatu.an <- pocty.duplikatu.an[pocty.duplikatu.an$n != 1, ]
     names(pocty.duplikatu.an )[1] <- "ID"
     names(pocty.duplikatu.an )[2] <- "antropa"
-    merged.file.list <- c(file.list.bez, file.list.compar.bez, file.list.compar_2.bez)
+    if (exists("file.list.compar_2.bez")) {
+      merged.file.list <- c(file.list.bez, file.list.compar.bez, file.list.compar_2.bez)
+    } else {
+      merged.file.list <- c(file.list.bez, file.list.compar.bez)
+    }
     pocty.file.list <- dplyr::as_tibble(table(merged.file.list))
     pocty.file.list <- pocty.file.list[pocty.file.list$n != 1, ]
     names(pocty.file.list)[1] <- "ID"
-    names(pocty.file.list)[2]<- "wingate"
-    pocty.file.list <- dplyr::left_join(pocty.file.list, pocty.duplikatu.an, by = "ID")
+    names(pocty.file.list)[2] <- "wingate"
+    pocty.file.list <- pocty.file.list %>%  dplyr::left_join(pocty.duplikatu.an, by = "ID")
     pocty.file.list$diff <- pocty.file.list$wingate - pocty.file.list$antropa
     chybne.pocty <- as.vector(pocty.file.list$ID[pocty.file.list$diff > 0])
     if (duplikaty_check == "NO") {
@@ -167,9 +176,11 @@ if ("TRUE" %in% duplikaty) {
       print(chybne.pocty)
       if (pocty_check == "YES") {
         spatne.compar <- chybne.pocty
-        spatne.compar_2 <- chybne.pocty
+        if (dalsi_srov  == "YES") {
+          spatne.compar_2 <- chybne.pocty 
+        }
       } else if (pocty_check == "NO") {
-        view(pocty.file.list)
+        tibble::view(pocty.file.list)
         stop("OPERACE PRERUSENA UZIVATELEM", call. = F)
       }
     }
@@ -275,11 +286,6 @@ if  ("FALSE" %in% kontrola.spiro & !pracma::isempty(setdiff(file.list.spiro.bez,
 }
 
 
-
-
-
-
-
 library(tcltk2)
 
 #### Sport selection GUI ####
@@ -345,7 +351,6 @@ tkwait.window(top)
 
 
 library(finalfit)
-library(dplyr)
 library(ggplot2)
 library(lubridate)
 library(gt)
@@ -754,9 +759,9 @@ for(i in 1:length(file.list)) {
     df4$`VO2_kg/l` <- append(na.omit(df4$VO2_kg), VO2_kg)
     df4$vykon_W <- append(na.omit(df4$vykon_W), vykon)
     df4$`vykon_l/kg` <- append(na.omit(df4$`vykon_l/kg`), round(vykon_kg,1))
-    df4$hrmax_BPM<- append(na.omit(df4$hrmax), hrmax)
+    df4$hrmax_BPM <- append(na.omit(df4$hrmax), hrmax)
     df4$anp_BPM <- append(na.omit(df4$anp), round(anp,0))
-    df4$tep_kys_ml <- append(na.omit(df4$tep_kys), tep.kyslik)
+    df4$tep_kys_ml <- append(df4$tep_kys_ml[1:length(df4$tep_kys_ml)-1], tep.kyslik)
     df4$vt_l <- append(na.omit(df4$vt), dech.objem)
     df4$RER <- append(na.omit(df4$RER), rer)
     df4$`LaMax_mmol/l` <- append(na.omit(df4$LaMax), la)
@@ -859,7 +864,7 @@ for(i in 1:length(file.list)) {
       df2$`Fat (%)` <- round(antropo$Fat[length(antropo$Fat)-2], 1)
       df2$ATH <- round(antropo$ATH[length(antropo$ATH)-2], 1)
       df2$`Pmax (W)` <- max(compare.wingate_2$Power..W.)
-      df2$`Pmax/kg (W/kg)` <- round(max(compare.wingate_2$Power..W.)/antropo$Weight[length(antropo$Weight)-2],2)
+      df2$`Pmax_kg (W/kg)` <- round(max(compare.wingate_2$Power..W.)/antropo$Weight[length(antropo$Weight)-2],2)
       df2$`Pmin (W)` <- min(compare.wingate_2$Power..W.[round((length(compare.wingate_2$Power..W.)/2),0):length(compare.wingate_2$Power..W.)])
       df2$`Avg_power (W)` <- round(mean(compare.wingate_2$Power..W.),1)
       df2$`Pdrop (W)` <- df2$`Pmax (W)` - df2$`Pmin (W)`
@@ -889,7 +894,7 @@ for(i in 1:length(file.list)) {
       df2$`Fat (%)` <- append(na.omit(df2$`Fat (%)`), round(antropo$Fat[length(antropo$Fat)-1], 1))
       df2$ATH <- append(na.omit(df2$ATH), round(antropo$ATH[length(antropo$ATH)-1], 1))
       df2$`Pmax (W)` <- append(na.omit(df2$`Pmax (W)`), max(compare.wingate$Power..W.))
-      df2$`Pmax/kg (W/kg)` <- append(na.omit(df2$`Pmax/kg (W/kg)`), round(max(compare.wingate$Power..W.)/antropo$Weight[length(antropo$Weight)-1],2))
+      df2$`Pmax_kg (W/kg)` <- append(na.omit(df2$`Pmax_kg (W/kg)`), round(max(compare.wingate$Power..W.)/antropo$Weight[length(antropo$Weight)-1],2))
       df2$`Pmin (W)` <- append(na.omit(df2$`Pmin (W)`), min(compare.wingate$Power..W.[round((length(compare.wingate$Power..W.)/2),0):length(compare.wingate$Power..W.)]))
       df2$`Avg_power (W)` <- append(na.omit(df2$`Avg_power (W)`), round(mean(compare.wingate$Power..W.),1))
       df2$`Pdrop (W)` <- append(na.omit(df2$`Pdrop (W)`), (df2$`Pmax (W)`[nrow(df2)] - df2$`Pmin (W)`[nrow(df2)]))
@@ -909,12 +914,13 @@ for(i in 1:length(file.list)) {
     df2 <- df2[nrow(df2) + 1,]
   }
   
+
   df2$Date_meas. <- append(na.omit(df2$Date_meas.), datum_mer)
   df2$Weight <- append(na.omit(df2$Weight), vaha)
   df2$`Fat (%)` <- append(na.omit(df2$`Fat (%)`), fat)
   df2$ATH <- append(na.omit(df2$ATH), ath)
   df2$`Pmax (W)` <- append(na.omit(df2$`Pmax (W)`), pp)
-  df2$`Pmax/kg (W/kg)` <- append(na.omit(df2$`Pmax/kg (W/kg)`), round(pp/vaha,2))
+  df2$`Pmax_kg (W/kg)` <- append(na.omit(df2$`Pmax_kg (W/kg)`), round(pp/vaha,2))
   df2$`Pmin (W)` <- append(na.omit(df2$`Pmin (W)`), minp)
   df2$`Avg_power (W)` <- append(na.omit(df2$`Avg_power (W)`), avrp)
   df2$`Pdrop (W)` <- append(na.omit(df2$`Pdrop (W)`), drop)
@@ -930,8 +936,7 @@ for(i in 1:length(file.list)) {
   my_breaks <- seq(0, tail(df$Elapsed.time.total..h.mm.ss.hh.,n=1)+5, by = 5)
   
   
-  if(exists("file.list.compar_2.bez")) {
-    if (srovnani == "YES" & id %in% file.list.compar_2.bez & tri_graf == "YES") {
+  if (exists("file.list.compar_2.bez") && srovnani == "YES" && id %in% file.list.compar_2.bez && tri_graf == "YES") {
       plot1 <- ggplot2::ggplot(df, aes(x = Elapsed.time.total..h.mm.ss.hh., y = Power..W.)) + 
         theme_classic()  + 
         theme(text = element_text(size = 30),
@@ -956,8 +961,7 @@ for(i in 1:length(file.list)) {
         ggtitle("Anaerobní Wingate test - 30 s")  + 
         labs(colour="") +
         scale_x_continuous(breaks = my_breaks)  
-    }
-    else if (tri_graf == "NO" | !(id %in% file.list.compar_2.bez) & id %in% file.list.compar.bez) {
+    } else if (ifelse(is.na(tri_graf), FALSE, tri_graf == "NO") | !(id %in% file.list.compar_2.bez) & id %in% file.list.compar.bez) {
       plot1 <- ggplot2::ggplot(df, aes(x = Elapsed.time.total..h.mm.ss.hh., y = Power..W.)) + 
         theme_classic()  + 
         theme(text = element_text(size = 30),
@@ -981,8 +985,7 @@ for(i in 1:length(file.list)) {
         ggtitle("Anaerobní Wingate test - 30 s")  + 
         labs(colour="") +
         scale_x_continuous(breaks = my_breaks)  
-    } 
-    else if (exists("file.list.compar.bez") & !exists("file.list.compar_2.bez")) {
+    } else if (exists("file.list.compar.bez") & !exists("file.list.compar_2.bez")) {
       if (srovnani == "YES" & id %in% file.list.compar.bez) {
         plot1 <- ggplot2::ggplot(df, aes(x = Elapsed.time.total..h.mm.ss.hh., y = Power..W.)) + 
           theme_classic()  + 
@@ -1032,32 +1035,8 @@ for(i in 1:length(file.list)) {
         labs(colour="") +
         scale_x_continuous(breaks = my_breaks)  
     }
-  }
-  else {
-    plot1 <- ggplot2::ggplot(df, aes(x = Elapsed.time.total..h.mm.ss.hh., y = Power..W.)) + 
-      theme_classic()  + 
-      theme(text = element_text(size = 30),
-            panel.grid.major = element_line(color = "grey90",
-                                            linewidth = 0.1,
-                                            linetype = 1),
-            panel.grid.minor.y = element_line(color = "grey90",
-                                              linewidth = 0.1,
-                                              linetype = 1),
-            axis.line = element_line(colour = "black",
-                                     linewidth = 1.5)) +
-      geom_line(aes(color = "grey", linetype = "dashed")) +
-      geom_line(aes(y=y, color = "black", linetype = "solid"), lwd = 0.9) + 
-      geom_line(aes(y = mean(Power..W.), color= "blue", linetype = "dashed"), lwd = 0.9) +
-      scale_linetype_manual(values = c('dashed', 'solid')) +
-      scale_colour_identity(guide = "legend", labels = c(paste("vyhlazená data,", datum_mer, sep = " "), "průměr měření", "hrubá data")) + guides(color = guide_legend(override.aes = list(linetype = c("solid", "dashed", "dashed")))) + 
-      guides(linetype = "none") + 
-      xlab(expression("Čas (s)")) + 
-      ylab("Výkon (W)") + 
-      ggtitle("Anaerobní Wingate test - 30 s")  + 
-      labs(colour="") +
-      scale_x_continuous(breaks = my_breaks)  
-  }
   
+ 
   
   
   #### Export of Reporting tables ####
@@ -1110,7 +1089,7 @@ for(i in 1:length(file.list)) {
       locations = cells_body(columns = c("V2", "Absolutní", "Relativní (TH)", "Relativní (ATH)", "Pětivteřinový průměr")))
   
   
-  #History table
+  #### History table - Wingate ####
   table2 <- df2 %>% gt() %>% tab_header(title = "Historie měření") %>% 
     cols_align(
       align = c("center")) %>% 
@@ -1123,10 +1102,10 @@ for(i in 1:length(file.list)) {
       Weight = "Váha (kg)",
       ATH = "ATH (kg)",
       `Fat (%)`  = "Tuk (%)",
-      `Avg_power (W)` = "Průměr P (W)",
+      `Avg_power (W)` = "Průměr P (W)", 
       `Pdrop (W)` = "Pokles (W)",
-      `Pmax_5s (W)` = "Pmax 5s (W)",
-      `Pmax/kg (W/kg)` = "Pmax (W/kg)",
+      `Pmax_5s (W)` = "Pmax 5s (W)", 
+      `Pmax_kg (W/kg)` = "Pmax (W/kg)",
       `IU (%)` = "IU (%)",
       `HR_max (BPM)` = "TF (BPM)",
       `La_max (mmol/l)` = "LA (mmol/l)",
@@ -1134,12 +1113,17 @@ for(i in 1:length(file.list)) {
       `Pmin (W)` = "Pmin (W)",
       `Work (kJ)` = "Práce (kJ)"
     ) %>% 
-    cols_width(c("Fat (%)", "ATH") ~ pct(6)) %>% 
-    cols_width(c("Avg_power (W)", "La_max (mmol/l)") ~ pct(10.5)) %>% 
-    cols_width(c("Pmax_5s (W)", "Pdrop (W)", "Pmax (W)", "Weight", "Work (kJ)", "IU (%)") ~ pct(8)) %>% 
-    cols_width(c("Date_meas.") ~ pct(7)) %>% cols_width(c("Pmin (W)", "Pmax (W)", "HR_max (BPM)") ~ pct(7)) %>%  sub_missing(columns = everything(), rows = everything(), missing_text = "") 
+    cols_width(
+      c("Fat (%)", "ATH") ~ pct(6),
+      c("Avg_power (W)", "La_max (mmol/l)") ~ pct(10.5),
+      c("Pmax_5s (W)", "Pdrop (W)", "Pmax (W)", "Weight", "Work (kJ)", "IU (%)") ~ pct(8),
+      c("Date_meas.") ~ pct(7.2),
+      c("Pmin (W)", "Pmax (W)", "HR_max (BPM)") ~ pct(7),
+      c("Pmax_kg (W/kg)") ~ pct(9)  # Add this line
+    ) %>% 
+    sub_missing(columns = everything(), rows = everything(), missing_text = "")
   
-  
+
   #tabulka spiro
   if (dotaz_spiro == "YES") {
     table3 <- df3 %>% 
@@ -1551,9 +1535,11 @@ if (dotaz_spiro == "YES") {
 
 writexl::write_xlsx(databaze, paste(wd, "/vysledky/vysledek", "_", team, "_", format(Sys.time(), "_%d-%m %H-%M"), ".xlsx", sep = ""), col_names = T, format_headers = T)
 
+if (exists("chybne.pocty")) {
 if (srovnani == "YES" & length(chybne.pocty) > 0) {
   print("Srovnání nevyhodnoceno (chybí antropa):")
   print(chybne.pocty)
+}
 }
 
 input <- readline("Nahrat vysledky do celkove databaze? (A/N): ")
