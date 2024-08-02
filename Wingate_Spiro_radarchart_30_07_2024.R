@@ -7,7 +7,7 @@ wd <- "C:/Users/DKolinger/Documents/R/Wingate + Spiro" #select path to files
 # !DO NOT CHANGE CODE BEYOND THIS LINE!
 #-----------------------------------------------------------------------------#
 
-
+options(error=traceback)
 setwd(wd)
 ##### Reference values for GUI of sport selection ####
 sports_data <- data.frame(
@@ -201,6 +201,7 @@ if ("FALSE" %in% kontrola & !pracma::isempty(setdiff(file.list.bez, file.list.an
     file.list <-  file.list[! file.list %in% spatne.wingate] 
   }
 }
+
 if  ("FALSE" %in% kontrola.spiro & !pracma::isempty(setdiff(file.list.spiro.bez, file.list.an.bez))) {
   cat('\n\n')
   print("Nazvy Antropa jsou rozdilne oproti Spiro - ZKONTROLUJ:")
@@ -223,16 +224,7 @@ if  ("FALSE" %in% kontrola.spiro & !pracma::isempty(setdiff(file.list.spiro.bez,
       print("Nazvy Wingate jsou rozdilne oproti Antropometrii - ZKONTROLUJ:")
       cat('\n')
       if (!pracma::isempty(setdiff(file.list.bez, file.list.an.bez))) {print(setdiff(file.list.bez, file.list.an.bez))}
-    }
-    if  (dotaz_spiro == "YES" & "FALSE" %in% kontrola.spiro & !pracma::isempty(setdiff(file.list.bez, file.list.spiro.bez))) {
-      cat('\n\n')
-      print("Nazvy Wingate jsou rozdilne oproti Spiro - ZKONTROLUJ:")
-      cat('\n')
-      if (!pracma::isempty(setdiff(file.list.bez, file.list.spiro.bez))) {
-        print(setdiff(file.list.bez, file.list.spiro.bez))
-        spatne.spiro <- setdiff(file.list.bez, file.list.spiro.bez)
-      }
-    }
+    } 
     if ("FALSE" %in% kontrola.s) {
       cat('\n\n')
       print("Nazvy Wingate jsou rozdilne (chybi) oproti Srovnani - ZKONTROLUJ:")
@@ -240,7 +232,28 @@ if  ("FALSE" %in% kontrola.spiro & !pracma::isempty(setdiff(file.list.spiro.bez,
       if (!pracma::isempty(setdiff(file.list.bez, file.list.compar.bez))) {
         print(setdiff(file.list.bez, file.list.compar.bez))
         input_y <- winDialog("yesno", paste("Srovnání 1 chybí pro", length(setdiff(file.list.bez, file.list.compar.bez)),"Wingate, pokračovat bez srovnání?", sep = " "))
-      }  }
+        if (input_y != "YES") {
+          stop("OPERACE PRERUSENA UZIVATELEM", call. = F)
+        } else if (input_y == "YES") {
+          if ("FALSE" %in% kontrola) {
+            spatne.wingate <- setdiff(file.list.bez, file.list.an.bez)
+            spatne.wingate <- paste(spatne.wingate, ".txt", sep = "")
+            file.list <-  file.list[! file.list %in% spatne.wingate]
+          } else if ("FALSE" %in% kontrola.s) {
+            spatne.compar <- ifelse(exists("spatne.compar"), c(spatne.compar, setdiff(file.list.bez, file.list.compar.bez)), setdiff(file.list.bez, file.list.compar.bez))
+            spatne.compar <- unique(spatne.compar)
+            
+          }
+        }
+      }  
+    }
+    
+
+
+    
+    
+    
+    
     if ("FALSE" %in% kontrola.s2) {
       cat('\n\n')
       print("Nazvy Wingate jsou rozdilne (chybi) oproti Srovnani 2 - ZKONTROLUJ:")
@@ -248,21 +261,8 @@ if  ("FALSE" %in% kontrola.spiro & !pracma::isempty(setdiff(file.list.spiro.bez,
       if (!pracma::isempty(setdiff(file.list.bez, file.list.compar_2.bez))) {print(setdiff(file.list.bez, file.list.compar_2.bez))}
       input_2 <- winDialog("yesno", paste("Srovnání 2 chybí pro", length(setdiff(file.list.bez, file.list.compar_2.bez)),"Wingate, pokračovat bez srovnání?", sep = " "))
     }
-    if (exists("input_y")) {
-      if (input_y == "NO") {
-        stop("OPERACE PRERUSENA UZIVATELEM", call. = F)
-      } else if (input_y == "YES") {
-        if ("FALSE" %in% kontrola) {
-          spatne.wingate <- setdiff(file.list.bez, file.list.an.bez)
-          spatne.wingate <- paste(spatne.wingate, ".txt", sep = "")
-          file.list <-  file.list[! file.list %in% spatne.wingate]
-        } else if ("FALSE" %in% kontrola.s) {
-          spatne.compar <- c(spatne.compar, setdiff(file.list.bez, file.list.compar.bez))
-          spatne.compar <- unique(spatne.compar)
-          
-        }
-      }
-    }
+    
+ 
     if(exists("input_2")) {
       if (input_2 == "NO") {
         stop("OPERACE PRERUSENA UZIVATELEM", call. = F) 
@@ -283,6 +283,18 @@ if  ("FALSE" %in% kontrola.spiro & !pracma::isempty(setdiff(file.list.spiro.bez,
     file.list.compar.bez <- file.list.compar.bez[!file.list.compar.bez %in% spatne.compar]   
   }
   
+}
+
+ if  (dotaz_spiro == "YES" & "FALSE" %in% kontrola.spiro & !pracma::isempty(setdiff(file.list.bez, file.list.spiro.bez))) {
+  cat('\n\n')
+  print("Wingate rozdílný oproti Spiro pro:") 
+  cat('\n')
+  print(setdiff(file.list.bez, file.list.spiro.bez))
+  spatne.spiro <- setdiff(file.list.bez, file.list.spiro.bez)
+  spiro_check <- winDialog("yesno", paste("Nalezeno celkem", length(spatne.spiro), "neshod ve Wingate/Spiro, pokračovat?", sep = " "))
+   if (spiro_check != "YES") {
+    stop("OPERACE PRERUSENA UZIVATELEM", call. = F) 
+  }
 }
 
 
@@ -362,7 +374,7 @@ library(scales)
 library(webshot)
 library(patchwork)
 
-i <- 1
+
 #### MAIN FOR LOOP ####
 for(i in 1:length(file.list)) {
   # data Wingate
@@ -437,6 +449,7 @@ for(i in 1:length(file.list)) {
         radek.zacatku <- which.min(abs(compare.wingate$Elapsed.time.total..h.mm.ss.hh. - cas.zacatku)) - 1
         compare.wingate <- compare.wingate[-(1:radek.zacatku),]
       }
+      
       if (compare.wingate$Elapsed.time.total..h.mm.ss.hh.[1] > 3) {
         compare.wingate$Elapsed.time.total..h.mm.ss.hh. <- compare.wingate$Elapsed.time.total..h.mm.ss.hh.- compare.wingate$Elapsed.time.total..h.mm.ss.hh.[1] 
       }
@@ -447,7 +460,8 @@ for(i in 1:length(file.list)) {
       s20 <- as.numeric(head(which(compare.wingate$Elapsed.time.total..h.mm.ss.hh. >= 20), n=1))
       s25 <- as.numeric(head(which(compare.wingate$Elapsed.time.total..h.mm.ss.hh. >= 25), n=1))
       s30 <- as.numeric(length(compare.wingate$Elapsed.time.total..h.mm.ss.hh.))
-      radky5s <- round(base::mean(s5, (s10-s5), (s15-s10), (s20-s15), (s25-s20), (s30-s25)),0)
+      differences <- c(s5, s10, s15, s20, s25, s30) - c(0, s5, s10, s15, s20, s25)
+      radky5s <- round(mean(differences), 0)
       compare.wingate$RM5_Power <- zoo::rollmean(compare.wingate$Power..W., k=radky5s, fill = NA, align = "right")
       
       for (j in 1:length(compare.wingate$Power..W.)) {
@@ -492,6 +506,7 @@ for(i in 1:length(file.list)) {
   for (j in 1:length(df$Power..W.)) {
     df$AvP_dopocet[j] <- mean(df$Power..W.[1:j] )
   }
+  
   
   ####  Anthropometry values calculation ####
   
@@ -751,26 +766,26 @@ for(i in 1:length(file.list)) {
     }
     
     
-    df4$Date_meas. <- append(na.omit(df4$Date_meas.), datum_mer)
+    df4$`Date meas.` <- append(na.omit(df4$`Date meas.`), datum_mer)
     df4$Name <- append(na.omit(df4$Name), fullname)
     df4$Weight <- append(na.omit(df4$Weight), vaha)
     df4$Fat <- append(na.omit(df4$Fat), fat)
-    df4$VO2max_l <- append(na.omit(df4$VO2max), VO2max)
-    df4$`VO2_kg/l` <- append(na.omit(df4$VO2_kg), VO2_kg)
-    df4$vykon_W <- append(na.omit(df4$vykon_W), vykon)
-    df4$`vykon_l/kg` <- append(na.omit(df4$`vykon_l/kg`), round(vykon_kg,1))
-    df4$hrmax_BPM <- append(na.omit(df4$hrmax), hrmax)
-    df4$anp_BPM <- append(na.omit(df4$anp), round(anp,0))
-    df4$tep_kys_ml <- append(df4$tep_kys_ml[1:length(df4$tep_kys_ml)-1], tep.kyslik)
-    df4$vt_l <- append(na.omit(df4$vt), dech.objem)
+    df4$`VO2max (l)` <- append(na.omit(df4$`VO2max (l)`), VO2max)
+    df4$`VO2max (ml/kg/min)` <- append(na.omit(df4$`VO2max (ml/kg/min)`), VO2_kg)
+    df4$`Výkon (W)` <- append(na.omit(df4$`Výkon (W)`), vykon)
+    df4$`Výkon (l/kg)` <- append(na.omit( df4$`Výkon (l/kg)`), round(vykon_kg,1))
+    df4$`HRmax (BPM)` <- append(na.omit(df4$`HRmax (BPM)`), hrmax)
+    df4$`ANP (BPM)` <- append(na.omit(df4$`ANP (BPM)`), round(anp,0))
+    df4$`Tep. kyslík (ml)` <- append(df4$`Tep. kyslík (ml)`[1:length(df4$`Tep. kyslík (ml)`)-1], tep.kyslik)
+    df4$`VT (l)` <- append(na.omit(df4$`VT (l)`), dech.objem)
     df4$RER <- append(na.omit(df4$RER), rer)
-    df4$`LaMax_mmol/l` <- append(na.omit(df4$LaMax), la)
-    df4$FEV1_l <- append(df4$FEV1_l[1:length(df4$FEV1_l)-1], FEV1)
-    df4$FVC_l <- append(na.omit(df4$FVC), FVC)
-    df4$aerobni_Z_do <- append(na.omit(df4$aerobni_Z_do), round((anp / 0.85)*0.75,0))
-    df4$smisena_Z_od <- append(na.omit(df4$smisena_Z_od), round((anp / 0.85)*0.76,0))
-    df4$smisena_Z_do <- append(na.omit(df4$smisena_Z_do), round((anp / 0.85)*0.84,0))
-    df4$anaerobni_Z_od <- append(na.omit(df4$anaerobni_Z_od), anp)
+    df4$`LaMax (mmol/l)` <- append(na.omit(df4$`LaMax (mmol/l)`), la)
+    df4$`FEV1 (l)` <- append(df4$`FEV1 (l)`[1:length(df4$`FEV1 (l)`)-1], FEV1)
+    df4$`FVC (l)` <- append(na.omit(df4$`FVC (l)`), FVC)
+    df4$`Aerobní Z. do` <- append(na.omit(df4$`Aerobní Z. do`), round((anp / 0.85)*0.75,0))
+    df4$`Smíšená Z. od` <- append(na.omit(df4$`Smíšená Z. od` ), round((anp / 0.85)*0.76,0))
+    df4$`Smíšená Z. do` <- append(na.omit(df4$`Smíšená Z. do`), round((anp / 0.85)*0.84,0))
+    df4$`Anaerobní Z. od` <- append(na.omit(df4$`Anaerobní Z. od`), anp)
     df4 <- add_row(df4)
     
     
@@ -1039,7 +1054,7 @@ for(i in 1:length(file.list)) {
  
   
   
-  #### Export of Reporting tables ####
+  #### Export of spiro report tables ####
   table1 <- df1 %>% gt() %>% 
     tab_header(title = fullname, subtitle = paste("Datum měření: ",datum_mer, sep = "")) %>% 
     cols_label(V2 = "") %>% sub_missing(columns = everything(),
@@ -1118,8 +1133,8 @@ for(i in 1:length(file.list)) {
       c("Avg_power (W)", "La_max (mmol/l)") ~ pct(10.5),
       c("Pmax_5s (W)", "Pdrop (W)", "Pmax (W)", "Weight", "Work (kJ)", "IU (%)") ~ pct(8),
       c("Date_meas.") ~ pct(7.2),
-      c("Pmin (W)", "Pmax (W)", "HR_max (BPM)") ~ pct(7),
-      c("Pmax_kg (W/kg)") ~ pct(9)  # Add this line
+      c("Pmin (W)", "Pmax (W)",  "HR_max (BPM)") ~ pct(7),
+      c("Pmax_kg (W/kg)") ~ pct(9)  
     ) %>% 
     sub_missing(columns = everything(), rows = everything(), missing_text = "")
   
@@ -1133,8 +1148,7 @@ for(i in 1:length(file.list)) {
         subtitle = paste("Datum měření: ", datum_mer, sep = "")
       ) %>% 
       cols_label(Hodnota = "") %>% 
-      cols_label(V3 = "")  %>% 
-      sub_missing(columns = everything(), rows = everything(), missing_text = "")  %>%
+      cols_label(V3 = "")   %>%
       tab_style(
         style = cell_text(weight = "bold"),
         locations = cells_column_labels()
@@ -1194,7 +1208,8 @@ for(i in 1:length(file.list)) {
       tab_style(
         style = "padding-bottom:20px",
         locations = cells_body(rows = 6)
-      )
+      ) %>% 
+      sub_missing(columns = everything(), rows = everything(), missing_text = "") 
     
     
     table4  <- tz %>% gt() %>% 
@@ -1529,7 +1544,7 @@ if (!dir.exists(paste(wd, "/vysledky/spiro/", sep=""))) {
 
 #### Report printing ####
 if (dotaz_spiro == "YES") {
-  df4 <- df4[rev(order(df4$`VO2_kg/l`)), ]
+  df4 <- df4[rev(order(df4$`VO2max (ml/kg/min)`)), ]
   writexl::write_xlsx(df4, paste(wd, "/vysledky/spiro/spiro_vysledek", "_", team, "_", format(Sys.time(), "_%d-%m %H-%M"), ".xlsx", sep = ""), col_names = T, format_headers = T)
 }
 
