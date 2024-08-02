@@ -724,7 +724,7 @@ for(i in 1:length(file.list)) {
     df3[1,5] <- paste(VO2max,"l", sep=" ")
     df3[2,5] <- paste(vykon,"W", sep=" ")
     df3[3,5] <- paste(hrmax,"BPM", sep=" ")
-    df3[4,5] <- paste(tep.kyslik,"ml/kg", sep=" ")
+    df3[4,5] <- ifelse(is.na(tep.kyslik), tep.kyslik, paste(tep.kyslik,"ml/kg", sep=" "))
     df3[5,5] <- paste(round(anp,0),"BPM", sep=" ")
     df3[9,5] <- paste(min.ventilace,"l/min", sep=" ")
     df3[10,5] <- paste(dech.frek,"d/min", sep=" ")
